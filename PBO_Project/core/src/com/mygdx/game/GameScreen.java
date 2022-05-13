@@ -29,7 +29,7 @@ public class GameScreen implements Screen, InputProcessor {
     }
     Game parentGame;
     AssetManager assetManager;
-    SpriteBatch batch;
+    SpriteBatch batch, stationaryBatch;
     OrthographicCamera camera, stageCamera;
     Viewport viewport;
     InputMultiplexer multiInput;
@@ -66,6 +66,7 @@ public class GameScreen implements Screen, InputProcessor {
         camera.setToOrtho(false, SimpleGame.virtualWidth, SimpleGame.virtualHeight);
         viewport = new FitViewport(SimpleGame.virtualWidth, SimpleGame.virtualHeight, camera);
         batch = new SpriteBatch();
+        stationaryBatch = new SpriteBatch();
 
         multiInput = new InputMultiplexer();
 
@@ -90,6 +91,45 @@ public class GameScreen implements Screen, InputProcessor {
         qEnergyFilter = new TextureRegion(qMask, 0, 0, 72, 0);
 
         Skin mySkin = assetManager.get("uiskin.json", Skin.class);
+
+        int enemyStart;
+        String diffName;
+        switch(difficulty) {
+            case 1:
+                clickCD_MAX = 0.5f;
+                eCD_MAX = 10;
+                qCD_MAX = 10;
+                enemyStart = 30;
+                diffName = "Easy";
+                break;
+            case 2:
+                clickCD_MAX = 0.5f;
+                eCD_MAX = 10;
+                qCD_MAX = 10;
+                enemyStart = 50;
+                diffName = "Normal";
+                break;
+            case 3:
+                clickCD_MAX = 0.4f;
+                eCD_MAX = 8;
+                qCD_MAX = 10;
+                enemyStart = 80;
+                diffName = "Hard";
+                break;
+            case 4:
+                clickCD_MAX = 0.2f;
+                eCD_MAX = 5;
+                qCD_MAX = 8;
+                enemyStart = 160;
+                diffName = "Insane";
+                break;
+            default:
+                clickCD_MAX = 0.01f;
+                eCD_MAX = 1;
+                qCD_MAX = 10;
+                enemyStart = 0;
+                diffName = "DEBUG";
+        }
 
         Label.LabelStyle style;
 
@@ -121,24 +161,6 @@ public class GameScreen implements Screen, InputProcessor {
         enemyCountText.setAlignment(Align.right);
         enemyCountText.setColor(Color.WHITE);
         stage.addActor(enemyCountText);
-
-        String diffName;
-        switch (difficulty) {
-            case 1:
-                diffName = "Easy";
-                break;
-            case 2:
-                diffName = "Normal";
-                break;
-            case 3:
-                diffName = "Hard";
-                break;
-            case 4:
-                diffName = "Insane";
-                break;
-            default:
-                diffName = "Unknown";
-        }
 
         diffText = new Label("Difficulty: " + diffName, mySkin);
         style = new Label.LabelStyle(diffText.getStyle());
@@ -306,34 +328,7 @@ public class GameScreen implements Screen, InputProcessor {
 
         player = new Klee(((SimpleGame) parentGame).getSoundVolume());
         player.setX(SimpleGame.virtualWidth / 2.0f);
-        player.setY(200);
-
-        int enemyStart;
-        switch(difficulty) {
-            case 1:
-                clickCD_MAX = 0.5f;
-                eCD_MAX = 10;
-                qCD_MAX = 10;
-                enemyStart = 30;
-                break;
-            case 3:
-                clickCD_MAX = 0.4f;
-                eCD_MAX = 8;
-                qCD_MAX = 10;
-                enemyStart = 80;
-                break;
-            case 4:
-                clickCD_MAX = 0.2f;
-                eCD_MAX = 5;
-                qCD_MAX = 8;
-                enemyStart = 160;
-                break;
-            default:
-                clickCD_MAX = 0.01f;
-                eCD_MAX = 1;
-                qCD_MAX = 10;
-                enemyStart = 0;
-        }
+        player.setY(SimpleGame.virtualHeight / 2.0f);
 
         for (int i = 0; i < enemyStart; i++) {
             randomEnemy = randomizer.nextInt(20);
@@ -440,11 +435,27 @@ public class GameScreen implements Screen, InputProcessor {
     @Override
     public void render(float v) {
         ScreenUtils.clear(0, 0, 0, 1);
+        camera.position.x += (player.getX() - camera.position.x) * 5 * v;
+        camera.position.y += (player.getY() - camera.position.y) * 5 * v;
         camera.update();
+
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         draw();
         batch.end();
+
+        stationaryBatch.begin();
+        stationaryBatch.draw(ui, 0, 0);
+        stationaryBatch.draw(clickButton, 17, 36);
+        stationaryBatch.draw(eButton, 113, 36);
+        stationaryBatch.draw(qButton, 209, 36);
+        stationaryBatch.draw(clickCDFilter, 17, 36);
+        stationaryBatch.draw(eCDFilter, 113, 36);
+        stationaryBatch.draw(qEnergyFilter, 209,36);
+        stationaryBatch.end();
+        stage.draw();
+
+
         switch (state) {
             case RUNNING:
                 update();
@@ -469,16 +480,7 @@ public class GameScreen implements Screen, InputProcessor {
         for (KleeE kE: kleeEList)
             kE.draw(batch);
 
-        batch.draw(ui, 0, 0);
-        batch.draw(clickButton, 17, 36);
-        batch.draw(eButton, 113, 36);
-        batch.draw(qButton, 209, 36);
-        batch.draw(clickCDFilter, 17, 36);
-        batch.draw(eCDFilter, 113, 36);
-        batch.draw(qEnergyFilter, 209,36);
         batch.draw(dumTexture, -1, -1);
-
-        stage.draw();
     }
 
     public void update() {
@@ -789,7 +791,7 @@ public class GameScreen implements Screen, InputProcessor {
         if (player.getState() == Klee.State.HIT || player.getState() == Klee.State.WIN || clickCD > 0)
             return false;
 
-        if (Gdx.input.getX() > player.getX()) {
+        if (viewport.unproject(new Vector2(Gdx.input.getX(), 0)).x > player.getX()) {
             player.setDirection(Entity.Direction.RIGHT);
             player.setAnimationDirection(Entity.Direction.RIGHT);
         }
