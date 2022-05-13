@@ -225,8 +225,8 @@ public class MenuScreen implements Screen, InputProcessor {
         aboutWindow.getTitleLabel().setAlignment(Align.center);
         stage.addActor(aboutWindow);
 
-        aboutLabel = new Label("Klee's Emergency Defense System!\n\nProyek PBO\n\nKelompok 11\nDenzel Daniel D'Assante Tangsaputra\nC14200160", mySkin);
-        aboutLabel.setPosition(aboutWindow.getWidth() / 2 - aboutLabel.getWidth() / 2, 130);
+        aboutLabel = new Label("Klee's Emergency Defense System! (AI Edition)\n\nProyek KB\n\nKelompok 5\nDenzel Daniel D'Assante Tangsaputra - C14200160\nJustin A. H. Rampengan - C14200148\nWendy L. Paath - C14200150\nBrigitta A. Heryanto - C1400188", mySkin);
+        aboutLabel.setPosition(aboutWindow.getWidth() / 2 - aboutLabel.getWidth() / 2, 80);
         aboutLabel.setAlignment(Align.center);
         aboutWindow.addActor(aboutLabel);
 
@@ -291,7 +291,7 @@ public class MenuScreen implements Screen, InputProcessor {
         creditWindow.getTitleLabel().setAlignment(Align.center);
         stage.addActor(creditWindow);
 
-        creditLabel = new Label("Klee, Genshin Impact (c) miHoYo\nFonts & gameplay sound effects extracted from Genshin Impact files\n\n\nKlee Sprites by @uuteki_art on Twitter\n\n\nEnemy sprites by Pixel Frog\n\n\nMisc. sprite edits by me\n\n\n\n\n(Click on links to open in browser)", mySkin);
+        creditLabel = new Label("Klee, Genshin Impact (c) HoYoverse\nFonts & gameplay sound effects extracted from Genshin Impact files\n\n\nKlee Sprites by @uuteki_art on Twitter\n\n\nEnemy sprites by Pixel Frog\n\n\nMisc. sprite edits by Denzel Daniel D.T.\n\n\n\n\n(Click on links to open in browser)", mySkin);
         creditLabel.setPosition(creditWindow.getWidth() / 2 - creditLabel.getWidth() / 2, 50);
         creditLabel.setAlignment(Align.center);
         creditWindow.addActor(creditLabel);
