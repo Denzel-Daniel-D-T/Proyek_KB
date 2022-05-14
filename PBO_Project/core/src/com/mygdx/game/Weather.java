@@ -26,12 +26,14 @@ public class Weather {
     private static float windStrength;
     private static float windDirection;
     private static Rain rain = Rain.UNKNOWN;
+    private static Rain prevRain;
 
     //Input data members
     private static Season season;
     private static Precipitation precipitation;
 
     public static void resetWeather() {
+        prevRain = rain;
         rain = Rain.UNKNOWN;
     }
 
@@ -108,5 +110,10 @@ public class Weather {
 
     public static Precipitation getPrecipitation() {
         return precipitation;
+    }
+
+    public static <T extends Enum<?>> T randomEnum(Class<T> enumClass) {
+        int x = random.nextInt(enumClass.getEnumConstants().length);
+        return enumClass.getEnumConstants()[x];
     }
 }

@@ -48,6 +48,8 @@ public class GameScreen implements Screen, InputProcessor {
     Random randomizer;
     State state;
 
+    Weather.Season season;
+
 
     int score, difficulty, enemyCount, gameState, checkWin, randomEnemy, energy;
     float clickCD, eCD, qCD, clickCD_MAX, eCD_MAX, qCD_MAX, weatherTimer;
@@ -58,6 +60,10 @@ public class GameScreen implements Screen, InputProcessor {
     }
 
     protected void Initialize() {
+        randomizer = new Random();
+
+        season = Weather.randomEnum(Weather.Season.class);
+
         state = State.PAUSED;
         pressedKeys = new IntSet(2);
 
@@ -318,8 +324,6 @@ public class GameScreen implements Screen, InputProcessor {
         eCD = 0;
         energy = 0;
 
-        randomizer = new Random();
-
         enemyList = new ArrayList<>();
         kleeBombList = new ArrayList<>();
         kBtoRemove = new ArrayList<>();
@@ -494,32 +498,19 @@ public class GameScreen implements Screen, InputProcessor {
         weatherTimer += delta;
         if (weatherTimer > 2) {
             Weather.resetWeather();
-            Weather.Season season;
-            if (randomizer.nextInt(100) < 50) {
-                season = Weather.Season.DRY;
-            }
-            else {
-                season = Weather.Season.WET;
-            }
 
-            Weather.Precipitation precipitation;
-            int tempPrec = randomizer.nextInt(100);
-            if (tempPrec < 33) {
-                precipitation = Weather.Precipitation.NONE;
-            }
-            else if (tempPrec < 67){
-                precipitation = Weather.Precipitation.LOW;
-            }
-            else {
-                precipitation = Weather.Precipitation.HIGH;
-            }
+            Weather.Precipitation precipitation = Weather.randomEnum(Weather.Precipitation.class);
 
             Weather.setWeather(season, precipitation);
             boolean cycleFinished = false;
             while (!cycleFinished) {
                 cycleFinished = Weather.calculateWeather();
             }
+
+            System.out.println(Weather.getSeason());
+            System.out.println(Weather.getPrecipitation());
             System.out.println(Weather.getRain());
+
             weatherTimer = 0;
         }
 
