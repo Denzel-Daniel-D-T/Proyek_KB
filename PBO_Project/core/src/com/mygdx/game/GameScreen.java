@@ -466,7 +466,12 @@ public class GameScreen implements Screen, InputProcessor {
     }
 
     public void draw() {
-        batch.draw(background, 0, 0);
+        for (int i = -2; i < 3; i++) {
+            for (int j = -2; j < 3; j++) {
+                batch.draw(background, j * background.getWidth(), i * background.getHeight());
+            }
+        }
+//        batch.draw(background, 0, 0);
 //        batch.draw(line, 124, 124);
 
         player.draw(batch);
