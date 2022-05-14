@@ -3,12 +3,12 @@ package com.mygdx.game;
 import java.util.Random;
 
 public class Weather {
-    private enum Season {
+    public enum Season {
         DRY,
         WET
     }
 
-    private enum Precipitation {
+    public enum Precipitation {
         NONE,
         LOW,
         HIGH
@@ -25,7 +25,7 @@ public class Weather {
     //Calculated data members
     private static float windStrength;
     private static float windDirection;
-    private static Rain rain;
+    private static Rain rain = Rain.UNKNOWN;
 
     //Input data members
     private static Season season;
@@ -44,7 +44,6 @@ public class Weather {
         if (rain == Rain.UNKNOWN) {
             if (precipitation == Precipitation.NONE && season == Season.DRY) {
                 rain = Rain.NONE;
-                return true;
             }
             if (precipitation == Precipitation.NONE && season == Season.WET) {
                 int randomNumber = random.nextInt(100);
@@ -54,7 +53,6 @@ public class Weather {
                 else {
                     rain = Rain.NONE;
                 }
-                return true;
             }
             if (precipitation == Precipitation.LOW && season == Season.DRY) {
                 int randomNumber = random.nextInt(100);
@@ -64,7 +62,6 @@ public class Weather {
                 else {
                     rain = Rain.NONE;
                 }
-                return true;
             }
             if (precipitation == Precipitation.LOW && season == Season.WET) {
                 int randomNumber = random.nextInt(100);
@@ -86,11 +83,11 @@ public class Weather {
                 else {
                     rain = Rain.HEAVY;
                 }
-                return true;
             }
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     public static float getWindStrength() {
