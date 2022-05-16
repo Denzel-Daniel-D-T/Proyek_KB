@@ -15,7 +15,7 @@ public class Klee extends Entity implements AttackedProcessor {
     Sound soundHit, soundQ;
     Animation<TextureRegion> idleLeftAnimation, runLeftAnimation, idleRightAnimation, runRightAnimation, loseAnimation, winAnimation;
     State state = State.IDLE;
-    float soundVolume;
+    float soundVolume, dashMultiplier;
 
     public Klee(float soundVolume) {
         X = 0;
@@ -77,8 +77,15 @@ public class Klee extends Entity implements AttackedProcessor {
         float delta = Gdx.graphics.getDeltaTime();
         stateTime += delta;
 
-        X += DX * Speed * delta;
-        Y += DY * Speed * delta;
+        X += DX * Speed * (dashMultiplier + 1) * delta;
+        Y += DY * Speed * (dashMultiplier + 1) * delta;
+
+        if (dashMultiplier > 0.1f) {
+            dashMultiplier *= 0.8f;
+        }
+        else {
+            dashMultiplier = 0;
+        }
 
         if (stateTime > 1.4f && state == State.HIT) {
             DX = 0;
@@ -141,7 +148,7 @@ public class Klee extends Entity implements AttackedProcessor {
     }
 
     public void getHit() {
-        if (state == State.HIT)
+        if (state == State.HIT || dashMultiplier > 0)
             return;
 
         state = State.HIT;
@@ -179,5 +186,9 @@ public class Klee extends Entity implements AttackedProcessor {
 
     public Sound getSoundQ() {
         return soundQ;
+    }
+
+    public void setDashMultiplier(float dashMultiplier) {
+        this.dashMultiplier = dashMultiplier;
     }
 }

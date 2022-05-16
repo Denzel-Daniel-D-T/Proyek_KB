@@ -21,7 +21,9 @@ public class Bat extends Enemy {
         Texture hit = assetManager.get("BatHit.png", Texture.class);
 
         runLeftAnimation = initAnimation(run, tileWidth, tileHeight, 7, 1, 0.05f, false);
+        runRightAnimation = initAnimation(run, tileWidth, tileHeight, 7, 1, 0.05f, true);
         hitLeftAnimation = initAnimation(hit, tileWidth, tileHeight, 5, 1, 0.05f, false);
+        hitRightAnimation = initAnimation(hit, tileWidth, tileHeight, 5, 1, 0.05f, true);
 
         stateTime = 0;
     }

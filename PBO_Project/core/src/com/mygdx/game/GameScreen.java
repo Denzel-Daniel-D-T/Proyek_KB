@@ -56,6 +56,7 @@ public class GameScreen implements Screen, InputProcessor {
 
     public GameScreen(Game g) {
         parentGame = g;
+        difficulty = 0;
         Initialize();
     }
 
@@ -133,7 +134,7 @@ public class GameScreen implements Screen, InputProcessor {
                 clickCD_MAX = 0.01f;
                 eCD_MAX = 1;
                 qCD_MAX = 10;
-                enemyStart = 0;
+                enemyStart = 40;
                 diffName = "DEBUG";
         }
 
@@ -440,7 +441,7 @@ public class GameScreen implements Screen, InputProcessor {
     public void render(float v) {
         ScreenUtils.clear(0, 0, 0, 1);
         camera.position.x += (player.getX() - camera.position.x) * 5 * v;
-        camera.position.y += (player.getY() - camera.position.y) * 5 * v;
+        camera.position.y += (player.getY() - camera.position.y - 60) * 5 * v;
         camera.update();
 
         batch.setProjectionMatrix(camera.combined);
@@ -475,8 +476,6 @@ public class GameScreen implements Screen, InputProcessor {
                 batch.draw(background, j * background.getWidth(), i * background.getHeight());
             }
         }
-//        batch.draw(background, 0, 0);
-//        batch.draw(line, 124, 124);
 
         player.draw(batch);
 
@@ -497,7 +496,7 @@ public class GameScreen implements Screen, InputProcessor {
         playTime += delta;
 
         weatherTimer += delta;
-        if (weatherTimer > 2) {
+        if (weatherTimer > 10) {
             Weather.resetWeather();
 
             Weather.setWeather(season);
@@ -581,14 +580,34 @@ public class GameScreen implements Screen, InputProcessor {
             k.setDX(k.getDX() + Weather.getWindStrength() * (float) Math.cos(Math.toRadians(Weather.getWindDirection())) * delta);
             k.setDY(k.getDY() + Weather.getWindStrength() * (float) Math.sin(Math.toRadians(Weather.getWindDirection())) * delta);
             k.update();
+            if (k.getState() == KleeAttacks.State.STD && ((k.getX() - k.getStartX()) * (k.getX() - k.getStartX()) + (k.getY() - k.getStartY()) * (k.getY() - k.getStartY())) > 160000) {
+                k.Boom();
+            }
         }
 
-        for (KleeE k: kleeEList)
+        for (KleeE k: kleeEList) {
+            k.setDX(k.getDX() + Weather.getWindStrength() * (float) Math.cos(Math.toRadians(Weather.getWindDirection())) * delta * 0.5f);
+            k.setDY(k.getDY() + Weather.getWindStrength() * (float) Math.sin(Math.toRadians(Weather.getWindDirection())) * delta * 0.5f);
             k.update();
+            if (k.getState() == KleeAttacks.State.STD && ((k.getX() - k.getStartX()) * (k.getX() - k.getStartX()) + (k.getY() - k.getStartY()) * (k.getY() - k.getStartY())) > 160000) {
+                k.Boom();
+                for (int i = 0; i < 10; i++) {
+                    float x, y;
+                    x = k.getX() - 160 + randomizer.nextInt(320);
+                    y = k.getY() - 160 + randomizer.nextInt(320);
+                    KleeBomb kB = new KleeBomb(x, y, 0, 0, 8, ((SimpleGame) parentGame).getSoundVolume());
+                    kleeBombList.add(kB);
+                }
+            }
+        }
 
         while (enemyIterator.hasNext()) {
             Enemy e = enemyIterator.next();
             e.update();
+            Vector2 enemyDir = new Vector2(player.getX() - e.getX(), player.getY() - e.getY());
+            enemyDir = enemyDir.nor();
+            e.setDX(enemyDir.x * 2);
+            e.setDY(enemyDir.y * 2);
             if (e.canHit(player)) {
                 player.getHit();
             }
@@ -762,8 +781,12 @@ public class GameScreen implements Screen, InputProcessor {
             pressedKeys.add(i);
         }
 
+        if (i == Input.Keys.SHIFT_LEFT) {
+            player.setDashMultiplier(6.0f);
+        }
+
         if (i == Input.Keys.E && eCD <= 0) {
-            if (Gdx.input.getX() > player.getX()) {
+            if (viewport.unproject(new Vector2(Gdx.input.getX(), 0)).x > player.getX()) {
             player.setDirection(Entity.Direction.RIGHT);
             player.setAnimationDirection(Entity.Direction.RIGHT);
             }
@@ -777,9 +800,7 @@ public class GameScreen implements Screen, InputProcessor {
             dir.x -= player.getX();
             dir.y -= player.getY();
 
-            float dirNormalizer = (float)Math.sqrt(dir.x * dir.x + dir.y * dir.y);
-            dir.x /= dirNormalizer;
-            dir.y /= dirNormalizer;
+            dir = dir.nor();
 
             KleeE kE = new KleeE(player.getX(), player.getY(), dir.x, dir.y, 12, ((SimpleGame) parentGame).getSoundVolume());
             kleeEList.add(kE);
@@ -789,12 +810,11 @@ public class GameScreen implements Screen, InputProcessor {
         if (i == Input.Keys.Q && qCD <= 0 && energy >= 80) {
             player.getSoundQ().play(player.soundVolume);
             for (Enemy e: enemyList) {
-                if (e.getX() < 700) {
-                    KleeBomb k = new KleeBomb(e.getX(), e.getY(), 0, 0, 0, ((SimpleGame) parentGame).getSoundVolume());
-                    kleeBombList.add(k);
-                }
+                KleeBomb k = new KleeBomb(e.getX(), e.getY(), 0, 0, 0, ((SimpleGame) parentGame).getSoundVolume());
+                kleeBombList.add(k);
             }
             energy -= 80;
+            energyText.setText("Energy: " + energy);
             qCD = qCD_MAX;
         }
 
@@ -844,9 +864,7 @@ public class GameScreen implements Screen, InputProcessor {
         dir.x -= player.getX();
         dir.y -= player.getY();
 
-        float dirNormalizer = (float)Math.sqrt(dir.x * dir.x + dir.y * dir.y);
-        dir.x /= dirNormalizer;
-        dir.y /= dirNormalizer;
+        dir = dir.nor();
 
         System.out.println(dir);
 

@@ -12,7 +12,7 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
 
     State state = State.NORMAL;
     int HP, score, tileWidth, tileHeight;
-    Animation<TextureRegion> runLeftAnimation, hitLeftAnimation;
+    Animation<TextureRegion> runLeftAnimation, runRightAnimation, hitLeftAnimation, hitRightAnimation;
     boolean alreadyAngry = false;
 
     public Enemy(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score) {
@@ -23,10 +23,22 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
 
     public void draw(SpriteBatch batch) {
         TextureRegion currentFrame = null;
-        if (state == State.NORMAL)
-            currentFrame = runLeftAnimation.getKeyFrame(stateTime, true);
-        else if (state == State.HIT)
-            currentFrame = hitLeftAnimation.getKeyFrame(stateTime, false);
+        if (state == State.NORMAL) {
+            if (animationDirection == Direction.LEFT) {
+                currentFrame = runLeftAnimation.getKeyFrame(stateTime, true);
+            }
+            else if (animationDirection == Direction.RIGHT) {
+                currentFrame = runRightAnimation.getKeyFrame(stateTime, true);
+            }
+        }
+        else if (state == State.HIT) {
+            if (animationDirection == Direction.LEFT) {
+                currentFrame = hitLeftAnimation.getKeyFrame(stateTime, false);
+            }
+            else if (animationDirection == Direction.RIGHT) {
+                currentFrame = hitRightAnimation.getKeyFrame(stateTime, false);
+            }
+        }
 
         batch.draw(currentFrame, X - (float) tileWidth / 2, Y - (float) tileHeight / 2);
     }
@@ -34,6 +46,15 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
     public void update() {
         float delta = Gdx.graphics.getDeltaTime();
         stateTime += delta;
+
+        if (animationDirection == Direction.LEFT && DX > 0) {
+            direction = Direction.RIGHT;
+            animationDirection = Direction.RIGHT;
+        }
+        else if (animationDirection == Direction.RIGHT && DX < 0) {
+            direction = Direction.LEFT;
+            animationDirection = Direction.LEFT;
+        }
 
         X += DX * Speed * delta;
         Y += DY * Speed * delta;
@@ -65,7 +86,7 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
         float dx = X - p.getX();
         float dy = Y - p.getY();
         float d = dx * dx + dy * dy;
-        return (d <= Math.pow((float) tileWidth / 2, 2) || X < -1 * (float) tileWidth / 2 - 1);
+        return (d <= Math.pow((float) tileWidth / 2, 2));
     }
 
     public void getHit() {

@@ -45,11 +45,17 @@ public abstract class KleeAttacks extends Entity implements KleeAttackProcessor 
         float delta = Gdx.graphics.getDeltaTime();
         stateTime += delta;
 
+        if (animationDirection == Direction.LEFT && DX > 0) {
+            direction = Direction.RIGHT;
+            animationDirection = Direction.RIGHT;
+        }
+        else if (animationDirection == Direction.RIGHT && DX < 0) {
+            direction = Direction.LEFT;
+            animationDirection = Direction.LEFT;
+        }
+
         X += DX * Speed * delta;
         Y += DY * Speed * delta;
-
-        if (state == State.STD && ((X - startX) * (X - startX) + (Y - startY) * (Y - startY)) > 160000)
-            Boom();
     }
 
     public void Boom() {
@@ -74,6 +80,14 @@ public abstract class KleeAttacks extends Entity implements KleeAttackProcessor 
                     break;
             }
         }
+    }
+
+    public float getStartX() {
+        return startX;
+    }
+
+    public float getStartY() {
+        return startY;
     }
 
     public State getState() {
