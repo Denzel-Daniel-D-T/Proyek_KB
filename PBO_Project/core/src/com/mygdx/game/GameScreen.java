@@ -52,7 +52,7 @@ public class GameScreen implements Screen, InputProcessor {
 
 
     int score, difficulty, enemyCount, gameState, checkWin, randomEnemy, energy;
-    float clickCD, eCD, qCD, clickCD_MAX, eCD_MAX, qCD_MAX, weatherTimer;
+    float clickCD, eCD, qCD, clickCD_MAX, eCD_MAX, qCD_MAX, weatherTimer, playTime;
 
     public GameScreen(Game g) {
         parentGame = g;
@@ -494,14 +494,13 @@ public class GameScreen implements Screen, InputProcessor {
 
     public void update() {
         float delta = Gdx.graphics.getDeltaTime();
+        playTime += delta;
 
         weatherTimer += delta;
         if (weatherTimer > 2) {
             Weather.resetWeather();
 
-            Weather.Precipitation precipitation = Weather.randomEnum(Weather.Precipitation.class);
-
-            Weather.setWeather(season, precipitation);
+            Weather.setWeather(season);
             boolean cycleFinished = false;
             while (!cycleFinished) {
                 cycleFinished = Weather.calculateWeather();
@@ -510,9 +509,13 @@ public class GameScreen implements Screen, InputProcessor {
             System.out.println(Weather.getSeason());
             System.out.println(Weather.getPrecipitation());
             System.out.println(Weather.getRain());
+            System.out.println(Weather.getCloud());
+            System.out.println(Weather.getWindStrength());
+            System.out.println(Weather.getWindDirection());
 
             weatherTimer = 0;
         }
+        Weather.setPlayTime(playTime);
 
         if (player.getState() == Klee.State.IDLE || player.getState() == Klee.State.RUN) {
             if (pressedKeys.contains(Input.Keys.A)) {
@@ -569,8 +572,11 @@ public class GameScreen implements Screen, InputProcessor {
 
         updateQ();
 
-        for (KleeBomb k: kleeBombList)
+        for (KleeBomb k: kleeBombList) {
+            k.setDX(k.getDX() + Weather.getWindStrength() * (float) Math.cos(Math.toRadians(Weather.getWindDirection())) * delta);
+            k.setDY(k.getDY() + Weather.getWindStrength() * (float) Math.sin(Math.toRadians(Weather.getWindDirection())) * delta);
             k.update();
+        }
 
         for (KleeE k: kleeEList)
             k.update();
@@ -836,6 +842,8 @@ public class GameScreen implements Screen, InputProcessor {
         float dirNormalizer = (float)Math.sqrt(dir.x * dir.x + dir.y * dir.y);
         dir.x /= dirNormalizer;
         dir.y /= dirNormalizer;
+
+        System.out.println(dir);
 
         KleeBomb kB = new KleeBomb(player.getX(), player.getY(), dir.x, dir.y, 4, ((SimpleGame) parentGame).getSoundVolume());
         kleeBombList.add(kB);

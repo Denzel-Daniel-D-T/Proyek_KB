@@ -21,25 +21,74 @@ public class Weather {
         HEAVY
     }
     private static final Random random = new Random();
+    private static boolean firstRun = true;
+    private static float playTime;
 
     //Calculated data members
     private static float windStrength;
     private static float windDirection;
     private static Rain rain = Rain.UNKNOWN;
-    private static Rain prevRain;
 
     //Input data members
     private static Season season;
     private static Precipitation precipitation;
+    private static float cloud;
 
     public static void resetWeather() {
-        prevRain = rain;
         rain = Rain.UNKNOWN;
     }
 
-    public static void setWeather(Season season, Precipitation precipitation) {
-        Weather.season = season;
-        Weather.precipitation = precipitation;
+    public static void setWeather(Season season) {
+        if (firstRun) {
+            Weather.season = season;
+            precipitation = Weather.randomEnum(Weather.Precipitation.class);
+            cloud = random.nextFloat();
+
+            windStrength = random.nextFloat();
+            windDirection = random.nextFloat() * 360;
+            firstRun = false;
+        }
+        else {
+            int x;
+            switch (precipitation) {
+                case NONE:
+                    x = random.nextInt(2);
+                    if (x == 0) {
+                        precipitation = Precipitation.NONE;
+                    }
+                    else {
+                        precipitation = Precipitation.LOW;
+                    }
+                    break;
+                case LOW:
+                    precipitation = Weather.randomEnum(Weather.Precipitation.class);
+                    break;
+                case HIGH:
+                    x = random.nextInt(2);
+                    if (x == 0) {
+                        precipitation = Precipitation.LOW;
+                    }
+                    else {
+                        precipitation = Precipitation.HIGH;
+                    }
+                    break;
+            }
+            cloud += -0.3f + random.nextFloat() * 0.6f;
+            cloud = Math.max(0, cloud);
+            cloud = Math.min(cloud, 1.0f);
+
+            windStrength += -0.2f + random.nextFloat() * 0.4f;
+            windStrength = Math.max(0 + playTime / 240f, windStrength);
+            windStrength = Math.min(windStrength, 1.0f + playTime / 240f);
+
+            windDirection += -45 + random.nextFloat() * 90;
+            if (windDirection < 0) {
+                windDirection = 360 + windDirection;
+            }
+            else if (windDirection > 360) {
+                windDirection -= 360;
+            }
+        }
     }
 
     public static boolean calculateWeather() {
@@ -48,8 +97,7 @@ public class Weather {
                 rain = Rain.NONE;
             }
             if (precipitation == Precipitation.NONE && season == Season.WET) {
-                int randomNumber = random.nextInt(100);
-                if (randomNumber < 25) {
+                if (cloud >= 0.75f) {
                     rain = Rain.LIGHT;
                 }
                 else {
@@ -57,8 +105,7 @@ public class Weather {
                 }
             }
             if (precipitation == Precipitation.LOW && season == Season.DRY) {
-                int randomNumber = random.nextInt(100);
-                if (randomNumber < 50) {
+                if (cloud > 0.5f) {
                     rain = Rain.LIGHT;
                 }
                 else {
@@ -66,24 +113,22 @@ public class Weather {
                 }
             }
             if (precipitation == Precipitation.LOW && season == Season.WET) {
-                int randomNumber = random.nextInt(100);
-                if (randomNumber < 60) {
-                    rain = Rain.LIGHT;
-                }
-                else if (randomNumber >= 95 && season == Season.WET) {
+                if (cloud >= 0.95f) {
                     rain = Rain.HEAVY;
+                }
+                else if (cloud >= 0.4f) {
+                    rain = Rain.LIGHT;
                 }
                 else {
                     rain = Rain.NONE;
                 }
             }
             if (precipitation == Precipitation.HIGH) {
-                int randomNumber = random.nextInt(100);
-                if (randomNumber < 10) {
-                    rain = Rain.LIGHT;
+                if (cloud >= 0.1f) {
+                    rain = Rain.HEAVY;
                 }
                 else {
-                    rain = Rain.HEAVY;
+                    rain = Rain.LIGHT;
                 }
             }
             return false;
@@ -110,6 +155,14 @@ public class Weather {
 
     public static Precipitation getPrecipitation() {
         return precipitation;
+    }
+
+    public static float getCloud() {
+        return cloud;
+    }
+
+    public static void setPlayTime(float playTime) {
+        Weather.playTime = playTime;
     }
 
     public static <T extends Enum<?>> T randomEnum(Class<T> enumClass) {
