@@ -8,7 +8,15 @@ public class Weather {
         WET
     }
 
+    public enum Change {
+        UNKNOWN,
+        NONE,
+        LOWER,
+        HIGHER
+    }
+
     public enum Precipitation {
+        UNKNOWN,
         NONE,
         LOW,
         HIGH
@@ -28,20 +36,35 @@ public class Weather {
     private static float windStrength;
     private static float windDirection;
     private static Rain rain = Rain.UNKNOWN;
+    private static Precipitation precipitation = Precipitation.UNKNOWN;
+    private static Change change = Change.UNKNOWN;
 
     //Input data members
     private static Season season;
-    private static Precipitation precipitation;
+    private static Precipitation prevPrecipitation;
     private static float cloud;
+    private static float prevCloud;
 
     public static void resetWeather() {
         rain = Rain.UNKNOWN;
+        if (firstRun) {
+            prevCloud = random.nextFloat();
+        }
+        else {
+            prevPrecipitation = precipitation;
+            prevCloud = cloud;
+        }
+        precipitation = Precipitation.UNKNOWN;
     }
 
     public static void setWeather(Season season) {
         if (firstRun) {
             Weather.season = season;
-            precipitation = Weather.randomEnum(Weather.Precipitation.class);
+
+            //For now random, later tied to difficulty
+            prevPrecipitation = Weather.Precipitation.class.getEnumConstants()[random.nextInt(Precipitation.class.getEnumConstants().length - 1) + 1];
+            //========================================
+
             cloud = random.nextFloat();
 
             windStrength = random.nextFloat();
@@ -49,30 +72,6 @@ public class Weather {
             firstRun = false;
         }
         else {
-            int x;
-            switch (precipitation) {
-                case NONE:
-                    x = random.nextInt(2);
-                    if (x == 0) {
-                        precipitation = Precipitation.NONE;
-                    }
-                    else {
-                        precipitation = Precipitation.LOW;
-                    }
-                    break;
-                case LOW:
-                    precipitation = Weather.randomEnum(Weather.Precipitation.class);
-                    break;
-                case HIGH:
-                    x = random.nextInt(2);
-                    if (x == 0) {
-                        precipitation = Precipitation.LOW;
-                    }
-                    else {
-                        precipitation = Precipitation.HIGH;
-                    }
-                    break;
-            }
             cloud += -0.3f + random.nextFloat() * 0.6f;
             cloud = Math.max(0, cloud);
             cloud = Math.min(cloud, 1.0f);
@@ -93,43 +92,85 @@ public class Weather {
 
     public static boolean calculateWeather() {
         if (rain == Rain.UNKNOWN) {
+            if (prevPrecipitation == Precipitation.NONE && (change == Change.NONE || change == Change.LOWER)) {
+                precipitation = Precipitation.NONE;
+                
+            }
+            if (prevPrecipitation == Precipitation.NONE && change == Change.HIGHER) {
+                precipitation = Precipitation.LOW;
+                
+            }
+            if (prevPrecipitation == Precipitation.LOW && change == Change.NONE) {
+                precipitation = Precipitation.LOW;
+                
+            }
+            if (prevPrecipitation == Precipitation.LOW && change == Change.LOWER) {
+                precipitation = Precipitation.NONE;
+                
+            }
+            if (prevPrecipitation == Precipitation.LOW && change == Change.HIGHER) {
+                precipitation = Precipitation.HIGH;
+                
+            }
+            if (prevPrecipitation == Precipitation.HIGH && change == Change.HIGHER) {
+                precipitation = Precipitation.HIGH;
+                
+            }
+            if (prevPrecipitation == Precipitation.HIGH && (change == Change.NONE || change == Change.LOWER)) {
+                precipitation = Precipitation.HIGH;
+                
+            }
+            if (prevCloud > cloud && Math.abs(prevCloud - cloud) >= 0.1f) {
+                change = Change.LOWER;
+                
+            }
+            if (Math.abs(prevCloud - cloud) < 0.1f) {
+                change = Change.NONE;
+                
+            }
+            if (prevCloud < cloud && Math.abs(prevCloud - cloud) >= 0.1f) {
+                change = Change.HIGHER;
+                
+            }
             if (precipitation == Precipitation.NONE && season == Season.DRY) {
                 rain = Rain.NONE;
+                
             }
-            if (precipitation == Precipitation.NONE && season == Season.WET) {
-                if (cloud >= 0.75f) {
-                    rain = Rain.LIGHT;
-                }
-                else {
-                    rain = Rain.NONE;
-                }
+            if (precipitation == Precipitation.NONE && season == Season.WET && cloud >= 0.75f) {
+                rain = Rain.LIGHT;
+                
             }
-            if (precipitation == Precipitation.LOW && season == Season.DRY) {
-                if (cloud > 0.5f) {
-                    rain = Rain.LIGHT;
-                }
-                else {
-                    rain = Rain.NONE;
-                }
+            if (precipitation == Precipitation.NONE && season == Season.WET && cloud < 0.75f) {
+                rain = Rain.NONE;
+                
             }
-            if (precipitation == Precipitation.LOW && season == Season.WET) {
-                if (cloud >= 0.95f) {
-                    rain = Rain.HEAVY;
-                }
-                else if (cloud >= 0.4f) {
-                    rain = Rain.LIGHT;
-                }
-                else {
-                    rain = Rain.NONE;
-                }
+            if (precipitation == Precipitation.LOW && season == Season.DRY && cloud >= 0.5f) {
+                rain = Rain.LIGHT;
+                
             }
-            if (precipitation == Precipitation.HIGH) {
-                if (cloud >= 0.1f) {
-                    rain = Rain.HEAVY;
-                }
-                else {
-                    rain = Rain.LIGHT;
-                }
+            if (precipitation == Precipitation.LOW && season == Season.DRY && cloud < 0.5f) {
+                rain = Rain.NONE;
+                
+            }
+            if (precipitation == Precipitation.LOW && season == Season.WET && cloud >= 0.95f) {
+                rain = Rain.HEAVY;
+                
+            }
+            if (precipitation == Precipitation.LOW && season == Season.WET && cloud >= 0.4f && cloud < 0.95f) {
+                rain = Rain.LIGHT;
+                
+            }
+            if (precipitation == Precipitation.LOW && season == Season.WET && cloud < 0.4f) {
+                rain = Rain.NONE;
+                
+            }
+            if (precipitation == Precipitation.HIGH && cloud >= 0.1f) {
+                rain = Rain.HEAVY;
+                
+            }
+            if (precipitation == Precipitation.HIGH && cloud < 0.1f) {
+                rain = Rain.LIGHT;
+                
             }
             return false;
         }
@@ -159,6 +200,14 @@ public class Weather {
 
     public static float getCloud() {
         return cloud;
+    }
+
+    public static Precipitation getPrevPrecipitation() {
+        return prevPrecipitation;
+    }
+
+    public static Change getChange() {
+        return change;
     }
 
     public static void setPlayTime(float playTime) {
