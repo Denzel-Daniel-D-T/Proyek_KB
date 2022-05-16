@@ -504,16 +504,19 @@ public class GameScreen implements Screen, InputProcessor {
             boolean cycleFinished = false;
             while (!cycleFinished) {
                 cycleFinished = Weather.calculateWeather();
+                System.out.println("Cycle Finished");
             }
+            System.out.println("All Cycles Finished");
 
             System.out.println("Season:" + Weather.getSeason());
-            System.out.println("Precipitation:" + Weather.getPrecipitation());
-            System.out.println("Rain:" + Weather.getRain());
-            System.out.println("Cloudiness:" + Weather.getCloud());
             System.out.println("Wind Strength:" + Weather.getWindStrength());
             System.out.println("Wind Direction:" + Weather.getWindDirection());
+            System.out.println("Rain:" + Weather.getRain());
+            System.out.println("Cloud:" + Weather.getCloud());
+            System.out.println("Prev. Cloud:" + Weather.getPrevCloud());
+            System.out.println("Precipitation:" + Weather.getPrecipitation());
             System.out.println("Prev. Precipitation:" + Weather.getPrevPrecipitation());
-            System.out.println("Prec. Change:" + Weather.getChange());
+            System.out.println("Precipitation Change:" + Weather.getChange());
 
             weatherTimer = 0;
         }
