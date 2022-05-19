@@ -44,6 +44,7 @@ public class GameScreen implements Screen, InputProcessor {
     ArrayList<Enemy> enemyList;
     ArrayList<KleeBomb> kleeBombList, kBtoRemove;
     ArrayList<KleeE> kleeEList, kEtoRemove;
+    ArrayList<Swarm> swarmList;
     IntSet pressedKeys;
     Random randomizer;
     State state;
@@ -330,6 +331,7 @@ public class GameScreen implements Screen, InputProcessor {
         kBtoRemove = new ArrayList<>();
         kleeEList = new ArrayList<>();
         kEtoRemove = new ArrayList<>();
+        swarmList = new ArrayList<>();
 
         player = new Klee(((SimpleGame) parentGame).getSoundVolume());
         player.setX(SimpleGame.virtualWidth / 2.0f);
@@ -482,6 +484,9 @@ public class GameScreen implements Screen, InputProcessor {
         for (Enemy e: enemyList)
             e.draw(batch);
 
+        for (Swarm s: swarmList)
+            s.draw(batch);
+
         for (KleeBomb kB: kleeBombList)
             kB.draw(batch);
 
@@ -495,6 +500,7 @@ public class GameScreen implements Screen, InputProcessor {
         float delta = Gdx.graphics.getDeltaTime();
         playTime += delta;
 
+        //region Weather System
         weatherTimer += delta;
         if (weatherTimer > 10) {
             Weather.resetWeather();
@@ -520,7 +526,9 @@ public class GameScreen implements Screen, InputProcessor {
             weatherTimer = 0;
         }
         Weather.setPlayTime(playTime);
+        //endregion
 
+        //region Controls
         if (player.getState() == Klee.State.IDLE || player.getState() == Klee.State.RUN) {
             if (pressedKeys.contains(Input.Keys.A)) {
                 if (pressedKeys.contains(Input.Keys.W)) {
@@ -550,10 +558,12 @@ public class GameScreen implements Screen, InputProcessor {
                 player.Stop();
             }
         }
+        //endregion
 
         player.update();
         gameState = player.result();
-        Iterator<Enemy> enemyIterator = enemyList.iterator();
+
+        //region Attack Updates
 
         if (clickCD > 0)
             clickCD -= delta;
@@ -576,12 +586,14 @@ public class GameScreen implements Screen, InputProcessor {
 
         updateQ();
 
+        //endregion
+
         for (KleeBomb k: kleeBombList) {
             k.setDX(k.getDX() + Weather.getWindStrength() * (float) Math.cos(Math.toRadians(Weather.getWindDirection())) * delta);
             k.setDY(k.getDY() + Weather.getWindStrength() * (float) Math.sin(Math.toRadians(Weather.getWindDirection())) * delta);
             k.update();
             if (k.getState() == KleeAttacks.State.STD && ((k.getX() - k.getStartX()) * (k.getX() - k.getStartX()) + (k.getY() - k.getStartY()) * (k.getY() - k.getStartY())) > 160000) {
-                k.Boom();
+                k.Boom(Vector2.dst(k.getX(), k.getY(), player.X, player.Y));
             }
         }
 
@@ -590,7 +602,7 @@ public class GameScreen implements Screen, InputProcessor {
             k.setDY(k.getDY() + Weather.getWindStrength() * (float) Math.sin(Math.toRadians(Weather.getWindDirection())) * delta * 0.5f);
             k.update();
             if (k.getState() == KleeAttacks.State.STD && ((k.getX() - k.getStartX()) * (k.getX() - k.getStartX()) + (k.getY() - k.getStartY()) * (k.getY() - k.getStartY())) > 160000) {
-                k.Boom();
+                k.Boom(Vector2.dst(k.getX(), k.getY(), player.X, player.Y));
                 for (int i = 0; i < 10; i++) {
                     float x, y;
                     x = k.getX() - 160 + randomizer.nextInt(320);
@@ -600,6 +612,8 @@ public class GameScreen implements Screen, InputProcessor {
                 }
             }
         }
+
+        Iterator<Enemy> enemyIterator = enemyList.iterator();
 
         while (enemyIterator.hasNext()) {
             Enemy e = enemyIterator.next();
@@ -621,14 +635,14 @@ public class GameScreen implements Screen, InputProcessor {
                 if (k.canHit(e)) {
                     e.getHit();
                     addEnergy(k.getEnergy());
-                    k.Boom();
+                    k.Boom(Vector2.dst(k.getX(), k.getY(), player.X, player.Y));
                 }
             }
             for (KleeE k: kleeEList) {
                 if (k.canHit(e)) {
                     e.getHit();
                     addEnergy(k.getEnergy());
-                    k.Boom();
+                    k.Boom(Vector2.dst(k.getX(), k.getY(), player.X, player.Y));
                     for (int i = 0; i < 10; i++) {
                         float x, y;
                         x = k.getX() - 160 + randomizer.nextInt(320);
@@ -638,6 +652,13 @@ public class GameScreen implements Screen, InputProcessor {
                     }
                 }
             }
+        }
+
+        Iterator<Swarm> swarmIterator = swarmList.iterator();
+
+        while (swarmIterator.hasNext()) {
+            Swarm s = swarmIterator.next();
+            s.update();
         }
 
         for (KleeBomb k: kleeBombList) {
@@ -808,7 +829,7 @@ public class GameScreen implements Screen, InputProcessor {
         }
 
         if (i == Input.Keys.Q && qCD <= 0 && energy >= 80) {
-            player.getSoundQ().play(player.soundVolume);
+            player.getSoundQ().play(player.soundVolume * 0.6f);
             for (Enemy e: enemyList) {
                 KleeBomb k = new KleeBomb(e.getX(), e.getY(), 0, 0, 0, ((SimpleGame) parentGame).getSoundVolume());
                 kleeBombList.add(k);

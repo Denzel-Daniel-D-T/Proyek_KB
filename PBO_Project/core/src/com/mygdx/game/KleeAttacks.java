@@ -58,13 +58,19 @@ public abstract class KleeAttacks extends Entity implements KleeAttackProcessor 
         Y += DY * Speed * delta;
     }
 
-    public void Boom() {
+    public void Boom(float distance) {
         state = State.HIT;
         stateTime = 0;
         DX = 0;
         DY = 0;
 
         if (energy != 0) {
+            distance /= 300;
+
+            // Attenuation function from:
+            // http://www.cemyuksel.com/research/pointlightattenuation/
+            soundVolume *= 2 / (distance * distance + 2 + distance * Math.sqrt(distance * distance + 2));
+
             switch (randomizer.nextInt(4)) {
                 case 0:
                     explode1.play(soundVolume);
