@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 
 public abstract class Enemy extends Entity implements EnemyAttackProcessor, AttackedProcessor {
     enum State {
@@ -15,10 +16,21 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
     Animation<TextureRegion> runLeftAnimation, runRightAnimation, hitLeftAnimation, hitRightAnimation;
     boolean alreadyAngry = false;
 
-    public Enemy(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score) {
+    boolean isMemberOfSwarm;
+
+    //region Swarm Data Members
+    float bestX, bestY, objective;
+    //endregion
+
+    public Enemy(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score, boolean isMemberOfSwarm) {
         super(x, y, DX, DY, speed, animationDirection, direction);
         this.HP = HP;
         this.score = score;
+        this.isMemberOfSwarm = isMemberOfSwarm;
+        if (isMemberOfSwarm) {
+            bestX = X;
+            bestY = Y;
+        }
     }
 
     public void draw(SpriteBatch batch) {
@@ -56,8 +68,10 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
             animationDirection = Direction.LEFT;
         }
 
-        X += DX * Speed * delta;
-        Y += DY * Speed * delta;
+        if (!isMemberOfSwarm) {
+            X += DX * Speed * delta;
+            Y += DY * Speed * delta;
+        }
 
         if (state == State.HIT && stateTime > 0.25f) {
             HP -= 1;
@@ -108,5 +122,9 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public void setObjective(Vector2 playerPos) {
+        objective = Vector2.dst2(X, Y, playerPos.x, playerPos.y);
     }
 }

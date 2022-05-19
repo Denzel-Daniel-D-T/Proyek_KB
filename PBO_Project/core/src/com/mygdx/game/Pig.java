@@ -10,8 +10,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 public class Pig extends Enemy implements Angry {
     Animation<TextureRegion> normalLeftAnimation, normalRightAnimation;
 
-    public Pig(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score) {
-        super(x, y, DX, DY, speed, animationDirection, direction, HP, score);
+    public Pig(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score, boolean isMemberOfSwarm) {
+        super(x, y, DX, DY, speed, animationDirection, direction, HP, score, isMemberOfSwarm);
         tileWidth = 36;
         tileHeight = 30;
         this.InitializeAnimation();

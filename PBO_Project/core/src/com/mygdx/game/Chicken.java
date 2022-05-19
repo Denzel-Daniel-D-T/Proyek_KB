@@ -6,8 +6,8 @@ import com.badlogic.gdx.graphics.Texture;
 
 public class Chicken extends Enemy {
 
-    public Chicken(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score) {
-        super(x, y, DX, DY, speed, animationDirection, direction, HP, score);
+    public Chicken(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score, boolean isMemberOfSwarm) {
+        super(x, y, DX, DY, speed, animationDirection, direction, HP, score, isMemberOfSwarm);
         tileWidth = 32;
         tileHeight = 34;
         this.InitializeAnimation();

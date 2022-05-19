@@ -335,7 +335,7 @@ public class GameScreen implements Screen, InputProcessor {
 
         player = new Klee(((SimpleGame) parentGame).getSoundVolume());
         player.setX(SimpleGame.virtualWidth / 2.0f);
-        player.setY(SimpleGame.virtualHeight / 2.0f);
+        player.setY(SimpleGame.virtualHeight / 2.0f + 60);
 
         for (int i = 0; i < enemyStart; i++) {
             randomEnemy = randomizer.nextInt(20);
@@ -350,13 +350,13 @@ public class GameScreen implements Screen, InputProcessor {
                     switch (randomEnemy) {
                         case 0: case 1: case 2: case 3:
                             Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30);
+                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30, false);
                             enemyList.add(c);
                             break;
                         case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11:
                         case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19:
                             Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20);
+                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, false);
                             enemyList.add(b);
                             break;
                     }
@@ -368,18 +368,18 @@ public class GameScreen implements Screen, InputProcessor {
                     switch (randomEnemy) {
                         case 0: case 1: case 2: case 3: case 4: case 5:
                             Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30);
+                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30, false);
                             enemyList.add(c);
                             break;
                         case 6: case 7: case 8: case 9: case 10: case 11:
                         case 12: case 13: case 14: case 15: case 16: case 17:
                             Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20);
+                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, false);
                             enemyList.add(b);
                             break;
                         case 18: case 19:
                             Speed = baseSpeed + randomizer.nextInt(ceilingSpeed * 3 / 5);
-                            Pig p = new Pig(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 50);
+                            Pig p = new Pig(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 50, false);
                             enemyList.add(p);
                             break;
                     }
@@ -391,47 +391,57 @@ public class GameScreen implements Screen, InputProcessor {
                     switch (randomEnemy) {
                         case 0: case 1: case 2: case 3: case 4: case 5:
                             Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30);
+                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30, false);
                             enemyList.add(c);
                             break;
                         case 6: case 7: case 8: case 9: case 10: case 11:
                         case 12: case 13: case 14: case 15: case 16:
                             Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20);
+                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, false);
                             enemyList.add(b);
                             break;
                         case 17: case 18:
                             Speed = baseSpeed + randomizer.nextInt(ceilingSpeed * 3 / 5);
-                            Pig p = new Pig(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 50);
+                            Pig p = new Pig(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 50, false);
                             enemyList.add(p);
                             break;
                         case 19:
                             x = x / 4 + 700;
                             Speed = (baseSpeed + randomizer.nextInt(ceilingSpeed)) / 3;
-                            Snail s = new Snail(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 10, 50);
+                            Snail s = new Snail(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 10, 50, false);
                             enemyList.add(s);
                     }
                     break;
                 default:
-                    x = 700 + randomizer.nextInt(1280);
-                    baseSpeed = 30;
-                    ceilingSpeed = 37;
-                    switch (randomEnemy) {
-                        case 0: case 1: case 2: case 3: case 4: case 5:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30);
-                            enemyList.add(c);
-                            break;
-                        case 6: case 7: case 8: case 9: case 10: case 11: case 12:
-                        case 13: case 14: case 15: case 16: case 17: case 18: case 19:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20);
-                            enemyList.add(b);
-                            break;
-                    }
+//                    x = 700 + randomizer.nextInt(1280);
+//                    baseSpeed = 30;
+//                    ceilingSpeed = 37;
+//                    switch (randomEnemy) {
+//                        case 0: case 1: case 2: case 3: case 4: case 5:
+//                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
+//                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30, false);
+//                            enemyList.add(c);
+//                            break;
+//                        case 6: case 7: case 8: case 9: case 10: case 11: case 12:
+//                        case 13: case 14: case 15: case 16: case 17: case 18: case 19:
+//                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
+//                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, false);
+//                            enemyList.add(b);
+//                            break;
+//                    }
             }
             enemyCount++;
         }
+
+        Swarm testSwarm = new Swarm();
+        for (int i = 0; i < 10; i++) {
+            Bat testBat = new Bat(randomizer.nextFloat() * 1600 - 800, randomizer.nextFloat() * 1600 - 800, 0, 0, 50, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, true);
+            testBat.setObjective(new Vector2(player.X, player.Y));
+            testSwarm.addEnemy(testBat);
+            enemyList.add(testBat);
+            enemyCount++;
+        }
+        swarmList.add(testSwarm);
         updateEnemyCount();
     }
     @Override
@@ -483,9 +493,6 @@ public class GameScreen implements Screen, InputProcessor {
 
         for (Enemy e: enemyList)
             e.draw(batch);
-
-        for (Swarm s: swarmList)
-            s.draw(batch);
 
         for (KleeBomb kB: kleeBombList)
             kB.draw(batch);
@@ -618,14 +625,21 @@ public class GameScreen implements Screen, InputProcessor {
         while (enemyIterator.hasNext()) {
             Enemy e = enemyIterator.next();
             e.update();
-            Vector2 enemyDir = new Vector2(player.getX() - e.getX(), player.getY() - e.getY());
-            enemyDir = enemyDir.nor();
-            e.setDX(enemyDir.x * 2);
-            e.setDY(enemyDir.y * 2);
+
+            if (!e.isMemberOfSwarm) {
+                Vector2 enemyDir = new Vector2(player.getX() - e.getX(), player.getY() - e.getY());
+                enemyDir = enemyDir.nor();
+                e.setDX(enemyDir.x);
+                e.setDY(enemyDir.y);
+            }
+
             if (e.canHit(player)) {
                 player.getHit();
             }
             if (e.getState() == Enemy.State.DEAD) {
+                for (Swarm s: swarmList) {
+                    s.removeMember(e);
+                }
                 enemyIterator.remove();
                 addScore(e.getScore());
                 enemyCount--;
@@ -658,7 +672,13 @@ public class GameScreen implements Screen, InputProcessor {
 
         while (swarmIterator.hasNext()) {
             Swarm s = swarmIterator.next();
+            s.calculateSwarmIteration(new Vector2(player.X, player.Y));
             s.update();
+
+            if (s.getState() == Swarm.State.DEAD) {
+                System.out.println("Swarm eliminated");
+                swarmIterator.remove();
+            }
         }
 
         for (KleeBomb k: kleeBombList) {

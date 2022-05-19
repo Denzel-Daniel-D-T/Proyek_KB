@@ -6,8 +6,8 @@ import com.badlogic.gdx.graphics.Texture;
 
 public class Snail extends Enemy {
 
-    public Snail(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score) {
-        super(x, y, DX, DY, speed, animationDirection, direction, HP, score);
+    public Snail(float x, float y, float DX, float DY, float speed, Direction animationDirection, Direction direction, int HP, int score, boolean isMemberOfSwarm) {
+        super(x, y, DX, DY, speed, animationDirection, direction, HP, score, isMemberOfSwarm);
         tileWidth = 38;
         tileHeight = 24;
         this.InitializeAnimation();
