@@ -29,8 +29,8 @@ public class MenuScreen implements Screen, InputProcessor {
     KleeMainMenu klee;
 
     Stage stage;
-    Label titleLabel, optionSoundLabel, optionMusicLabel, aboutLabel, creditLabel, creditLink1, creditLink2, creditLink3;
-    TextButton playButton, optionButton, optionDoneButton, aboutButton, aboutBackButton, creditButton, creditBackButton, exitButton;
+    Label titleLabel, optionSoundLabel, optionMusicLabel, playDescLabel, aboutLabel, creditLabel, creditLink1, creditLink2, creditLink3;
+    TextButton playButton, optionButton, optionDoneButton, level1Button, level2Button, level3Button, level4Button, level5Button, playBackButton, aboutButton, aboutBackButton, creditButton, creditBackButton, exitButton;
     Window optionWindow, playWindow, aboutWindow, creditWindow;
     CheckBox musicCheckbox, soundCheckbox;
 
@@ -59,12 +59,12 @@ public class MenuScreen implements Screen, InputProcessor {
 
         Skin mySkin = assetManager.get("uiskin.json", Skin.class);
 
-        titleLabel = new Label("Klee's Emergency\nDefense System!", mySkin);
+        titleLabel = new Label("Klee's Emergency\nDefense System!\n(AI Edition)", mySkin);
         Label.LabelStyle style = new Label.LabelStyle(titleLabel.getStyle());
         style.font = assetManager.get("bigfont.ttf", BitmapFont.class);
         titleLabel.setStyle(style);
         titleLabel.setWidth(640);
-        titleLabel.setPosition(0, 480);
+        titleLabel.setPosition(0, 440);
         titleLabel.setAlignment(Align.center);
         titleLabel.setColor(Color.BLACK);
         stage.addActor(titleLabel);
@@ -81,7 +81,8 @@ public class MenuScreen implements Screen, InputProcessor {
             @Override
             public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
                 if (x >= 0 && y >= 0 && x <= event.getTarget().getWidth() && y <= event.getTarget().getHeight()) {
-                    parentGame.setScreen(new GameScreen(parentGame));
+                    playWindow.setVisible(true);
+                    playDescLabel.setText("Hover over a difficulty option to learn about it!");
                 }
             }
             @Override
@@ -215,6 +216,175 @@ public class MenuScreen implements Screen, InputProcessor {
         });
         optionWindow.addActor(optionDoneButton);
 
+        playWindow = new Window("Select Difficulty", mySkin);
+        playWindow.setSize(540, 480);
+        playWindow.setPosition(320 - playWindow.getWidth() / 2, 300 - playWindow.getHeight() / 2);
+        playWindow.setMovable(false);
+        playWindow.setModal(true);
+        playWindow.setResizable(false);
+        playWindow.setVisible(false);
+        playWindow.getTitleLabel().setAlignment(Align.center);
+        stage.addActor(playWindow);
+
+        playDescLabel = new Label("Hover over a difficulty option to learn about it!", mySkin);
+        playDescLabel.setAlignment(Align.center);
+        playDescLabel.setPosition(0, 100);
+        playDescLabel.setWidth(playWindow.getWidth());
+        playWindow.addActor(playDescLabel);
+
+        playBackButton = new TextButton("Back", mySkin);
+        playBackButton.setSize(75, 24);
+        playBackButton.setPosition(playWindow.getWidth() / 2 - playBackButton.getWidth() / 2, 20);
+        playBackButton.addListener(new InputListener(){
+            @Override
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                if (x >= 0 && y >= 0 && x <= event.getTarget().getWidth() && y <= event.getTarget().getHeight()) {
+                    playWindow.setVisible(false);
+                }
+            }
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
+        });
+        playWindow.addActor(playBackButton);
+
+        level1Button = new TextButton("Easy", mySkin);
+        level1Button.setSize(150, 36);
+        level1Button.setPosition(playWindow.getWidth() / 2 - level1Button.getWidth() / 2, playWindow.getHeight() - 80);
+        level1Button.addListener(new InputListener(){
+            @Override
+            public void enter (InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                playDescLabel.setText("For beginners!\n\nScore Multiplier: 0.5x");
+            }
+            @Override
+            public void exit (InputEvent event, float x, float y, int pointer, Actor toActor) {
+                playDescLabel.setText("Hover over a difficulty option to learn about it!");
+            }
+            @Override
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                if (x >= 0 && y >= 0 && x <= event.getTarget().getWidth() && y <= event.getTarget().getHeight()) {
+                    parentGame.setScreen(new GameScreen(parentGame, 1));
+                    MenuScreen.this.dispose();
+                }
+            }
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
+        });
+        playWindow.addActor(level1Button);
+
+        level2Button = new TextButton("Normal", mySkin);
+        level2Button.setSize(150, 36);
+        level2Button.setPosition(playWindow.getWidth() / 2 - level2Button.getWidth() / 2, playWindow.getHeight() - 126);
+        level2Button.addListener(new InputListener(){
+            @Override
+            public void enter (InputEvent event, float x, float y, int pointer,  Actor fromActor) {
+                playDescLabel.setText("The standard experience!\n\nScore Multiplier: 1.0x");
+            }
+            @Override
+            public void exit (InputEvent event, float x, float y, int pointer,  Actor toActor) {
+                playDescLabel.setText("Hover over a difficulty option to learn about it!");
+            }
+            @Override
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                if (x >= 0 && y >= 0 && x <= event.getTarget().getWidth() && y <= event.getTarget().getHeight()) {
+                    parentGame.setScreen(new GameScreen(parentGame, 2));
+                    MenuScreen.this.dispose();
+                }
+            }
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
+        });
+        playWindow.addActor(level2Button);
+
+        level3Button = new TextButton("Hard", mySkin);
+        level3Button.setSize(150, 36);
+        level3Button.setPosition(playWindow.getWidth() / 2 - level3Button.getWidth() / 2, playWindow.getHeight() - 172);
+        level3Button.addListener(new InputListener(){
+            @Override
+            public void enter (InputEvent event, float x, float y, int pointer,  Actor fromActor) {
+                playDescLabel.setText("For the challenge seekers!\nIt's quite cloudy today, beware of strong winds!\n\nFollowing her mother's advice, Klee decided to carry some\nspecially crafted explosives in response to the weather!\nScore Multiplier: 1.5x");
+                playDescLabel.setY(110);
+            }
+            @Override
+            public void exit (InputEvent event, float x, float y, int pointer,  Actor toActor) {
+                playDescLabel.setText("Hover over a difficulty option to learn about it!");
+                playDescLabel.setY(100);
+            }
+            @Override
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                if (x >= 0 && y >= 0 && x <= event.getTarget().getWidth() && y <= event.getTarget().getHeight()) {
+                    parentGame.setScreen(new GameScreen(parentGame, 3));
+                    MenuScreen.this.dispose();
+                }
+            }
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
+        });
+        playWindow.addActor(level3Button);
+
+        level4Button = new TextButton("Insane", mySkin);
+        level4Button.setSize(150, 36);
+        level4Button.setPosition(playWindow.getWidth() / 2 - level4Button.getWidth() / 2, playWindow.getHeight() - 218);
+        level4Button.addListener(new InputListener(){
+            @Override
+            public void enter (InputEvent event, float x, float y, int pointer,  Actor fromActor) {
+                playDescLabel.setText("When a hard challenge is simply not enough!\nThe weather seems bad today, watch out for\nstrong winds and stray thunderbolts!\n\nIn response to the harsh conditions, Klee decided\nto carry even more of her special gunpowder formula!\n\nScore Multiplier: 2.0x");
+                playDescLabel.setY(110);
+            }
+            @Override
+            public void exit (InputEvent event, float x, float y, int pointer,  Actor toActor) {
+                playDescLabel.setText("Hover over a difficulty option to learn about it!");
+                playDescLabel.setY(100);
+            }
+            @Override
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                if (x >= 0 && y >= 0 && x <= event.getTarget().getWidth() && y <= event.getTarget().getHeight()) {
+                    parentGame.setScreen(new GameScreen(parentGame, 4));
+                    MenuScreen.this.dispose();
+                }
+            }
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
+        });
+        playWindow.addActor(level4Button);
+
+        level5Button = new TextButton("Frenzy", mySkin);
+        level5Button.setSize(150, 36);
+        level5Button.setPosition(playWindow.getWidth() / 2 - level5Button.getWidth() / 2, playWindow.getHeight() - 264);
+        level5Button.addListener(new InputListener(){
+            @Override
+            public void enter (InputEvent event, float x, float y, int pointer,  Actor fromActor) {
+                playDescLabel.setText("When you simply want to obliterate a bunch of enemies without\nworrying about your safety!\nKlee is invincible, always moves faster than the fastest enemy\nand her abilities grant her godlike powers!\n\nScore Multiplier: 3.0x");
+                playDescLabel.setY(110);
+            }
+            @Override
+            public void exit (InputEvent event, float x, float y, int pointer,  Actor toActor) {
+                playDescLabel.setText("Hover over a difficulty option to learn about it!");
+                playDescLabel.setY(100);
+            }
+            @Override
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                if (x >= 0 && y >= 0 && x <= event.getTarget().getWidth() && y <= event.getTarget().getHeight()) {
+                    parentGame.setScreen(new GameScreen(parentGame, 5));
+                    MenuScreen.this.dispose();
+                }
+            }
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
+        });
+        playWindow.addActor(level5Button);
+
         aboutWindow = new Window("About", mySkin);
         aboutWindow.setSize(480, 320);
         aboutWindow.setPosition(320 - aboutWindow.getWidth() / 2, 300 - aboutWindow.getHeight() / 2);
@@ -296,14 +466,14 @@ public class MenuScreen implements Screen, InputProcessor {
         creditLabel.setAlignment(Align.center);
         creditWindow.addActor(creditLabel);
 
-        creditLink1 = new Label("https://genshin.mihoyo.com/en/home", mySkin);
+        creditLink1 = new Label("https://genshin.hoyoverse.com/en/home", mySkin);
         creditLink1.setPosition(creditWindow.getWidth() / 2 - creditLink1.getWidth() / 2, 310);
         creditLink1.setAlignment(Align.center);
         creditLink1.addListener(new InputListener(){
             @Override
             public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
                 if (x >= 0 && y >= 0 && x <= event.getTarget().getWidth() && y <= event.getTarget().getHeight()) {
-                    Gdx.net.openURI("https://genshin.mihoyo.com/en/home");
+                    Gdx.net.openURI("https://genshin.hoyoverse.com/en/home");
                 }
             }
             @Override

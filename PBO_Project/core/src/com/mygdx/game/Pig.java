@@ -65,13 +65,8 @@ public class Pig extends Enemy implements Angry {
         batch.draw(currentFrame, X - (float) tileWidth / 2, Y - (float) tileHeight / 2);
     }
 
-    public void update() {
-        super.update();
-        Angry();
-    }
-
     public void Angry() {
-        if (X < 320 && state != State.ANGRY && state != State.HIT && state != State.DEAD) {
+        if (state != State.ANGRY && state != State.HIT && state != State.DEAD) {
             state = State.ANGRY;
             stateTime = 0;
             Speed *= 1.5;

@@ -19,13 +19,24 @@ public class Swarm {
     private float c1 = 0.8f;
     private float c2 = 0.1f;
     private float w = 0.95f;
-    private float guidance = 0.9f;
+    private float guidance = 1;
     private float globalBestX;
     private float globalBestY;
     private float globalBestObjective = Float.MAX_VALUE;
-//    private float reinertiaTime;
+    private float reinertiaTime;
+    private float separateTime;
+    private float totalTime;
 
-    public Swarm() {
+    private boolean separate = false;
+
+    public float startPosX;
+    public float startPosY;
+
+    float avgX = 0, avgY = 0;
+
+    public Swarm(float startPosX, float startPosY) {
+        this.startPosX = startPosX;
+        this.startPosY = startPosY;
         state = State.ACTIVE;
     }
 
@@ -35,15 +46,27 @@ public class Swarm {
     }
 
     public void update() {
-//        reinertiaTime += Gdx.graphics.getDeltaTime();
-//        if (w < 1 && reinertiaTime > 3) {
-//            w = 1.1f;
-//            reinertiaTime = 0;
-//        }
-//        if (w > 1 && reinertiaTime > 0.8f) {
-//            w = 0.95f;
-//            reinertiaTime = 0;
-//        }
+        reinertiaTime += Gdx.graphics.getDeltaTime();
+        totalTime += Gdx.graphics.getDeltaTime();
+        if (reinertiaTime > 1) {
+            globalBestObjective = Float.MAX_VALUE;
+
+            avgX = 0;
+            avgY = 0;
+
+            for (Enemy e: population) {
+                e.objective = Float.MAX_VALUE;
+                avgX += e.X;
+                avgY += e.Y;
+            }
+
+            avgX /= populationCount;
+            avgY /= populationCount;
+
+            separate = true;
+
+            reinertiaTime = 0;
+        }
         if (populationCount == 0) {
             state = State.DEAD;
         }
@@ -58,8 +81,10 @@ public class Swarm {
     }
 
     public void removeMember(Enemy e) {
-        population.remove(e);
-        populationCount--;
+        if (population.contains(e)) {
+            population.remove(e);
+            populationCount--;
+        }
     }
 
     public void calculateSwarmIteration(Vector2 playerPos) {
@@ -67,14 +92,12 @@ public class Swarm {
         for (Enemy e: population) {
             float rand1 = random.nextFloat();
             float rand2 = random.nextFloat();
-            e.DX = w * e.DX + c1 * rand1 * (e.bestX - e.X) + c2 * rand2 * (globalBestX - e.X) + guidance * (playerPos.x - e.X);
-            System.out.println(e.DX + ", " + e.bestX + ", " + globalBestX + ", " + rand1);
-            e.DY = w * e.DY + c1 * rand1 * (e.bestY - e.Y) + c2 * rand2 * (globalBestY - e.Y) + guidance * (playerPos.y - e.Y);
-//            System.out.println("(" + e.DX + ", " + e.DY + ")");
 
-            e.X += e.DX * delta;
-            e.Y += e.DY * delta;
-//            System.out.println("(" + e.X + ", " + e.Y + ")");
+            e.DX = w * e.DX + c1 * rand1 * (e.bestX - e.X) + c2 * rand2 * (globalBestX - e.X) + guidance * (playerPos.x - e.X) / Vector2.len(playerPos.x - e.X, playerPos.y - e.Y);
+            e.DY = w * e.DY + c1 * rand1 * (e.bestY - e.Y) + c2 * rand2 * (globalBestY - e.Y) + guidance * (playerPos.y - e.Y) / Vector2.len(playerPos.x - e.X, playerPos.y - e.Y);
+
+            e.X += (Math.min(e.DX, 100) + Math.cos(Math.toRadians(totalTime * 90)) * 200) * delta * e.Speed / 100f;
+            e.Y += (Math.min(e.DY, 100) + Math.sin(Math.toRadians(totalTime * 90)) * 200) * delta * e.Speed / 100f;
 
             float objective = Vector2.dst2(e.X, e.Y, playerPos.x, playerPos.y);
             if (objective < e.objective) {
@@ -87,8 +110,18 @@ public class Swarm {
                 globalBestX = e.bestX;
                 globalBestY = e.bestY;
             }
-            System.out.println(e.objective);
         }
-        System.out.println("===============\n" + globalBestObjective);
+        if (separate) {
+            for (Enemy e: population) {
+                e.X += (e.X - avgX) * delta;
+                e.Y += (e.Y - avgY) * delta;
+            }
+            separateTime += delta;
+            if (separateTime > 0.25f) {
+                separateTime = 0;
+                separate = false;
+            }
+        }
+//        System.out.println(globalBestObjective + "(" + globalBestX + ", " + globalBestY + ")");
     }
 }

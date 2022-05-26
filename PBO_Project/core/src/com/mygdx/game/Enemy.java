@@ -68,7 +68,7 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
             animationDirection = Direction.LEFT;
         }
 
-        if (!isMemberOfSwarm) {
+        if (!isMemberOfSwarm && (state == State.NORMAL || state == State.ANGRY)) {
             X += DX * Speed * delta;
             Y += DY * Speed * delta;
         }
@@ -78,7 +78,6 @@ public abstract class Enemy extends Entity implements EnemyAttackProcessor, Atta
             if (HP <= 0)
                 state = State.DEAD;
             else {
-                DX = -1;
                 if (!(this instanceof Pig)) {
                     state = State.NORMAL;
                 }

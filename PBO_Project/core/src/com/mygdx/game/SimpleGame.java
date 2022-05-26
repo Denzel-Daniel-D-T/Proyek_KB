@@ -47,9 +47,7 @@ public class SimpleGame extends Game implements InputProcessor {
 		assetManager.load("kleeWin.png", Texture.class);
 		assetManager.load("skill_E.png", Texture.class);
 		assetManager.load("bg.png", Texture.class);
-		assetManager.load("win_bg.png", Texture.class);
 		assetManager.load("lose_bg.png", Texture.class);
-		assetManager.load("Line.png", Texture.class);
 		assetManager.load("kleeMM_idle.png", Texture.class);
 		assetManager.load("button_Click.png", Texture.class);
 		assetManager.load("button_E.png", Texture.class);

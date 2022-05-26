@@ -35,10 +35,10 @@ public class GameScreen implements Screen, InputProcessor {
     InputMultiplexer multiInput;
     Stage stage;
     Window infoWindow, pauseWindow;
-    Label textLabel, scoreText, energyText, clickCDText, eCDText, qCDText, enemyCountText, cText, eText, qText, pausedText, diffText;
+    Label textLabel, scoreText, energyText, clickCDText, eCDText, qCDText, enemyCountText, cText, eText, qText, pausedText, diffText, staminaText, windStrengthText, windDirText, weatherText;
     Button okButton, resumeButton, exitButton;
     TextureRegion clickCDFilter, eCDFilter, qEnergyFilter;
-    Texture background, line, ui, clickButton, eButton, qButton, blackMask, qMask, dumTexture;
+    Texture background, ui, clickButton, eButton, qButton, blackMask, qMask, dumTexture;
 
     Klee player;
     ArrayList<Enemy> enemyList;
@@ -52,12 +52,41 @@ public class GameScreen implements Screen, InputProcessor {
     Weather.Season season;
 
 
-    int score, difficulty, enemyCount, gameState, checkWin, randomEnemy, energy;
-    float clickCD, eCD, qCD, clickCD_MAX, eCD_MAX, qCD_MAX, weatherTimer, playTime;
+    int score;
+    int difficulty;
+    int enemyCount;
+    int gameState;
+    int checkWin;
+    int energy;
+    int explodeDistance = 160000;
+    int gaIteration = 0;
+    int d5_ultTimer = 0;
 
-    public GameScreen(Game g) {
+    float clickCD;
+    float eCD;
+    float qCD;
+    float clickCD_MAX;
+    float eCD_MAX;
+    float qCD_MAX;
+    float weatherTimer;
+    float playTime;
+    float enemyTimer = Float.MAX_VALUE;
+    float skillEnergyMul;
+    float gaStatMul;
+    float stamina;
+    float maxStamina;
+    float staminaCD;
+    float staminaCD_MAX;
+    float kleeAtkSpeed;
+
+    float[] parent1;
+    float[] parent2;
+
+    ArrayList<float[]> offsprings = new ArrayList<>();
+
+    public GameScreen(Game g, int difficulty) {
         parentGame = g;
-        difficulty = 0;
+        this.difficulty = difficulty;
         Initialize();
     }
 
@@ -65,6 +94,7 @@ public class GameScreen implements Screen, InputProcessor {
         randomizer = new Random();
 
         season = Weather.randomEnum(Weather.Season.class);
+        Weather.difficulty = difficulty;
 
         state = State.PAUSED;
         pressedKeys = new IntSet(2);
@@ -85,7 +115,6 @@ public class GameScreen implements Screen, InputProcessor {
         multiInput.addProcessor(this);
 
         background = assetManager.get("bg.png", Texture.class);
-        line = assetManager.get("Line.png", Texture.class);
         ui = assetManager.get("gameUI.png", Texture.class);
         clickButton = assetManager.get("button_Click.png");
         eButton = assetManager.get("button_E.png", Texture.class);
@@ -100,44 +129,93 @@ public class GameScreen implements Screen, InputProcessor {
 
         Skin mySkin = assetManager.get("uiskin.json", Skin.class);
 
-        int enemyStart;
         String diffName;
         switch(difficulty) {
             case 1:
                 clickCD_MAX = 0.5f;
                 eCD_MAX = 10;
                 qCD_MAX = 10;
-                enemyStart = 30;
+                skillEnergyMul = 1;
+                gaStatMul = 0.5f;
+                maxStamina = 100;
+                stamina = maxStamina;
+                staminaCD_MAX = 2;
+                kleeAtkSpeed = 150;
+                parent1 = new float[]{50, 1, 4};
+                parent2 = new float[]{40, 1, 4};
                 diffName = "Easy";
                 break;
             case 2:
                 clickCD_MAX = 0.5f;
                 eCD_MAX = 10;
                 qCD_MAX = 10;
-                enemyStart = 50;
+                skillEnergyMul = 1;
+                gaStatMul = 0.75f;
+                maxStamina = 145;
+                stamina = maxStamina;
+                staminaCD_MAX = 2;
+                kleeAtkSpeed = 150;
+                parent1 = new float[]{70, 1, 5};
+                parent2 = new float[]{50, 1, 4};
                 diffName = "Normal";
                 break;
             case 3:
                 clickCD_MAX = 0.4f;
                 eCD_MAX = 8;
                 qCD_MAX = 10;
-                enemyStart = 80;
+                skillEnergyMul = 1;
+                gaStatMul = 0.9f;
+                maxStamina = 190;
+                stamina = maxStamina;
+                staminaCD_MAX = 1.5f;
+                kleeAtkSpeed = 180;
+                parent1 = new float[]{90, 1, 5};
+                parent2 = new float[]{60, 1, 8};
                 diffName = "Hard";
                 break;
             case 4:
                 clickCD_MAX = 0.2f;
                 eCD_MAX = 5;
                 qCD_MAX = 8;
-                enemyStart = 160;
+                skillEnergyMul = 1.25f;
+                gaStatMul = 1;
+                maxStamina = 240;
+                stamina = maxStamina;
+                staminaCD_MAX = 1;
+                kleeAtkSpeed = 240;
+                parent1 = new float[]{110, 1, 9};
+                parent2 = new float[]{80, 2, 7};
                 diffName = "Insane";
                 break;
+            case 5:
+                clickCD_MAX = 0.15f;
+                eCD_MAX = 3;
+                qCD_MAX = 6;
+                skillEnergyMul = 1.5f;
+                gaStatMul = 1;
+                maxStamina = -1;
+                staminaCD_MAX = 0;
+                kleeAtkSpeed = 300;
+                parent1 = new float[]{120, 2, 11};
+                parent2 = new float[]{90, 2, 9};
+                diffName = "Frenzy";
+                break;
             default:
-                clickCD_MAX = 0.01f;
-                eCD_MAX = 1;
-                qCD_MAX = 10;
-                enemyStart = 40;
+                clickCD_MAX = 0;
+                eCD_MAX = 0;
+                qCD_MAX = 0;
+                skillEnergyMul = 20;
+                gaStatMul = 1;
+                maxStamina = -1;
+                staminaCD_MAX = 0;
+                kleeAtkSpeed = 150;
+                parent1 = new float[]{110, 1, 9};
+                parent2 = new float[]{80, 2, 7};
                 diffName = "DEBUG";
         }
+
+        offsprings.add(parent1);
+        offsprings.add(parent2);
 
         Label.LabelStyle style;
 
@@ -147,7 +225,7 @@ public class GameScreen implements Screen, InputProcessor {
         style = new Label.LabelStyle(scoreText.getStyle());
         style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
         scoreText.setStyle(style);
-        scoreText.setPosition(616 - scoreText.getWidth(), 7 + 88 - scoreText.getHeight() / 2);
+        scoreText.setPosition(620 - scoreText.getWidth(), 7 + 88 - scoreText.getHeight() / 2);
         scoreText.setAlignment(Align.right);
         scoreText.setColor(Color.WHITE);
         stage.addActor(scoreText);
@@ -156,16 +234,16 @@ public class GameScreen implements Screen, InputProcessor {
         style = new Label.LabelStyle(energyText.getStyle());
         style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
         energyText.setStyle(style);
-        energyText.setPosition(616 - energyText.getWidth(), 7 + 66 - energyText.getHeight() / 2);
+        energyText.setPosition(620 - energyText.getWidth(), 7 + 66 - energyText.getHeight() / 2);
         energyText.setAlignment(Align.right);
         energyText.setColor(Color.WHITE);
         stage.addActor(energyText);
 
-        enemyCountText = new Label("Enemies Left: " + enemyCount, mySkin);
+        enemyCountText = new Label("Enemies Alive: " + enemyCount, mySkin);
         style = new Label.LabelStyle(enemyCountText.getStyle());
         style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
         enemyCountText.setStyle(style);
-        enemyCountText.setPosition(616 - enemyCountText.getWidth(), 7 + 44 - enemyCountText.getHeight() / 2);
+        enemyCountText.setPosition(620 - enemyCountText.getWidth(), 7 + 44 - enemyCountText.getHeight() / 2);
         enemyCountText.setAlignment(Align.right);
         enemyCountText.setColor(Color.WHITE);
         stage.addActor(enemyCountText);
@@ -174,10 +252,46 @@ public class GameScreen implements Screen, InputProcessor {
         style = new Label.LabelStyle(diffText.getStyle());
         style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
         diffText.setStyle(style);
-        diffText.setPosition(616 - diffText.getWidth(), 7 + 22 - diffText.getHeight() / 2);
+        diffText.setPosition(620 - diffText.getWidth(), 7 + 22 - diffText.getHeight() / 2);
         diffText.setAlignment(Align.right);
         diffText.setColor(Color.WHITE);
         stage.addActor(diffText);
+
+        staminaText = new Label("Stamina: " + stamina, mySkin);
+        style = new Label.LabelStyle(staminaText.getStyle());
+        style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
+        staminaText.setStyle(style);
+        staminaText.setPosition(620 - staminaText.getWidth() - diffText.getWidth() - 35, 7 + 88 - staminaText.getHeight() / 2);
+        staminaText.setAlignment(Align.right);
+        staminaText.setColor(Color.WHITE);
+        stage.addActor(staminaText);
+
+        windStrengthText = new Label("Wind Spd: " + "-", mySkin);
+        style = new Label.LabelStyle(windStrengthText.getStyle());
+        style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
+        windStrengthText.setStyle(style);
+        windStrengthText.setPosition(620 - windStrengthText.getWidth() - diffText.getWidth() - 35, 7 + 66 - windStrengthText.getHeight() / 2);
+        windStrengthText.setAlignment(Align.right);
+        windStrengthText.setColor(Color.WHITE);
+        stage.addActor(windStrengthText);
+
+        windDirText = new Label("Wind Dir: " + "-", mySkin);
+        style = new Label.LabelStyle(windDirText.getStyle());
+        style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
+        windDirText.setStyle(style);
+        windDirText.setPosition(620 - windDirText.getWidth() - diffText.getWidth() - 35, 7 + 44 - windDirText.getHeight() / 2);
+        windDirText.setAlignment(Align.right);
+        windDirText.setColor(Color.WHITE);
+        stage.addActor(windDirText);
+
+        weatherText = new Label("Rain: " + "-", mySkin);
+        style = new Label.LabelStyle(weatherText.getStyle());
+        style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
+        weatherText.setStyle(style);
+        weatherText.setPosition(620 - weatherText.getWidth() - diffText.getWidth() - 35, 7 + 22 - weatherText.getHeight() / 2);
+        weatherText.setAlignment(Align.right);
+        weatherText.setColor(Color.WHITE);
+        stage.addActor(weatherText);
 
         clickCDText = new Label("", mySkin);
         style = new Label.LabelStyle(clickCDText.getStyle());
@@ -206,7 +320,7 @@ public class GameScreen implements Screen, InputProcessor {
         qCDText.setColor(Color.WHITE);
         stage.addActor(qCDText);
 
-        cText = new Label("Left Click", mySkin);
+        cText = new Label("LClick / F", mySkin);
         style = new Label.LabelStyle(cText.getStyle());
         style.font = assetManager.get("uiFont.ttf", BitmapFont.class);
         cText.setStyle(style);
@@ -234,7 +348,7 @@ public class GameScreen implements Screen, InputProcessor {
         stage.addActor(qText);
 
         infoWindow = new Window("Controls", mySkin);
-        infoWindow.setSize(480, 160);
+        infoWindow.setSize(480, 360);
         infoWindow.setPosition(320 - infoWindow.getWidth() / 2, 300 - infoWindow.getHeight() / 2);
         infoWindow.setMovable(false);
         infoWindow.setModal(true);
@@ -243,7 +357,7 @@ public class GameScreen implements Screen, InputProcessor {
         infoWindow.getTitleLabel().setAlignment(Align.center);
         stage.addActor(infoWindow);
 
-        textLabel = new Label("Lorem ipsum dolor sit amet, consectetur adipiscing elit.\nPress the button below to start.", mySkin);
+        textLabel = new Label("(W) Move Up\n(S) Move Down\n(A) Move Left\n(D) Move Right\n(Left Click) Shoot Projectiles\n(E) Cast Skill\n(Q) Cast Ultimate\n(LShift) Dash (Immune to damage while dashing)\n\n(ESC) Pause Game", mySkin);
         textLabel.setPosition(infoWindow.getWidth() / 2 - textLabel.getWidth() / 2, 80);
         infoWindow.addActor(textLabel);
 
@@ -336,113 +450,6 @@ public class GameScreen implements Screen, InputProcessor {
         player = new Klee(((SimpleGame) parentGame).getSoundVolume());
         player.setX(SimpleGame.virtualWidth / 2.0f);
         player.setY(SimpleGame.virtualHeight / 2.0f + 60);
-
-        for (int i = 0; i < enemyStart; i++) {
-            randomEnemy = randomizer.nextInt(20);
-            int x, y, dx = -1, dy = 0, Speed, baseSpeed, ceilingSpeed;
-            y = 150 + randomizer.nextInt(425);
-            switch (difficulty) {
-                case 1:
-                    x = 700 + randomizer.nextInt(960);
-                    player.setSpeed(200);
-                    baseSpeed = 20;
-                    ceilingSpeed = 30;
-                    switch (randomEnemy) {
-                        case 0: case 1: case 2: case 3:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30, false);
-                            enemyList.add(c);
-                            break;
-                        case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11:
-                        case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, false);
-                            enemyList.add(b);
-                            break;
-                    }
-                    break;
-                case 3:
-                    x = 700 + randomizer.nextInt(1920);
-                    baseSpeed = 40;
-                    ceilingSpeed = 45;
-                    switch (randomEnemy) {
-                        case 0: case 1: case 2: case 3: case 4: case 5:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30, false);
-                            enemyList.add(c);
-                            break;
-                        case 6: case 7: case 8: case 9: case 10: case 11:
-                        case 12: case 13: case 14: case 15: case 16: case 17:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, false);
-                            enemyList.add(b);
-                            break;
-                        case 18: case 19:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed * 3 / 5);
-                            Pig p = new Pig(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 50, false);
-                            enemyList.add(p);
-                            break;
-                    }
-                    break;
-                case 4:
-                    x = 700 + randomizer.nextInt(2560);
-                    baseSpeed = 55;
-                    ceilingSpeed = 55;
-                    switch (randomEnemy) {
-                        case 0: case 1: case 2: case 3: case 4: case 5:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30, false);
-                            enemyList.add(c);
-                            break;
-                        case 6: case 7: case 8: case 9: case 10: case 11:
-                        case 12: case 13: case 14: case 15: case 16:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, false);
-                            enemyList.add(b);
-                            break;
-                        case 17: case 18:
-                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed * 3 / 5);
-                            Pig p = new Pig(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 50, false);
-                            enemyList.add(p);
-                            break;
-                        case 19:
-                            x = x / 4 + 700;
-                            Speed = (baseSpeed + randomizer.nextInt(ceilingSpeed)) / 3;
-                            Snail s = new Snail(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 10, 50, false);
-                            enemyList.add(s);
-                    }
-                    break;
-                default:
-//                    x = 700 + randomizer.nextInt(1280);
-//                    baseSpeed = 30;
-//                    ceilingSpeed = 37;
-//                    switch (randomEnemy) {
-//                        case 0: case 1: case 2: case 3: case 4: case 5:
-//                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-//                            Chicken c = new Chicken(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 2, 30, false);
-//                            enemyList.add(c);
-//                            break;
-//                        case 6: case 7: case 8: case 9: case 10: case 11: case 12:
-//                        case 13: case 14: case 15: case 16: case 17: case 18: case 19:
-//                            Speed = baseSpeed + randomizer.nextInt(ceilingSpeed);
-//                            Bat b = new Bat(x, y, dx, dy, Speed, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, false);
-//                            enemyList.add(b);
-//                            break;
-//                    }
-            }
-            enemyCount++;
-        }
-
-        Swarm testSwarm = new Swarm();
-        for (int i = 0; i < 10; i++) {
-            Bat testBat = new Bat(randomizer.nextFloat() * 1600 - 800, randomizer.nextFloat() * 1600 - 800, 0, 0, 50, Entity.Direction.LEFT, Entity.Direction.LEFT, 1, 20, true);
-            testBat.setObjective(new Vector2(player.X, player.Y));
-            testSwarm.addEnemy(testBat);
-            enemyList.add(testBat);
-            enemyCount++;
-        }
-        swarmList.add(testSwarm);
-        updateEnemyCount();
     }
     @Override
     public void show() {
@@ -506,6 +513,64 @@ public class GameScreen implements Screen, InputProcessor {
     public void update() {
         float delta = Gdx.graphics.getDeltaTime();
         playTime += delta;
+        enemyTimer += delta;
+
+        if (enemyTimer > 3) {
+            calculateGA();
+            if (difficulty == 5) {
+                player.setSpeed(Math.max(parent1[0] * 1.6f, 150));
+            }
+            int spawnCount = randomizer.nextInt(3) + 1 + ((int)playTime / 60);
+            for (int i = 0; i < spawnCount; i++) {
+                int enemyType = randomizer.nextInt(100);
+                float randomAngle = randomizer.nextFloat() * 360;
+                float enemyX = (float)Math.cos(Math.toRadians(randomAngle)) * 500 + player.X;
+                float enemyY = (float)Math.sin(Math.toRadians(randomAngle)) * 500 + player.Y;
+
+                int checkParent = randomizer.nextInt(2);
+                float[] chosenChromosome;
+                if (checkParent == 0) {
+                    chosenChromosome = parent1;
+                }
+                else {
+                    chosenChromosome = parent2;
+                }
+
+                if (enemyType < 40) {
+                    Bat bat = new Bat(enemyX, enemyY, 0, 0, chosenChromosome[0], Entity.Direction.LEFT, Entity.Direction.LEFT, (int)chosenChromosome[1], 10, false);
+                    enemyList.add(bat);
+                    enemyCount++;
+                }
+                else if (enemyType < 65) {
+                    Chicken chicken = new Chicken(enemyX, enemyY, 0, 0, chosenChromosome[0], Entity.Direction.LEFT, Entity.Direction.LEFT, (int)chosenChromosome[1] + 2, 20, false);
+                    enemyList.add(chicken);
+                    enemyCount++;
+                }
+                else if (enemyType < 80) {
+                    Pig pig = new Pig(enemyX, enemyY, 0, 0, chosenChromosome[0] * 0.75f, Entity.Direction.LEFT, Entity.Direction.LEFT, (int)chosenChromosome[1] + 3, 40, false);
+                    enemyList.add(pig);
+                    enemyCount++;
+                }
+                else if (enemyType < 95) {
+                    Snail snail = new Snail(enemyX, enemyY, 0, 0, chosenChromosome[0] * 0.25f, Entity.Direction.LEFT, Entity.Direction.LEFT, (int)(Math.max(chosenChromosome[1] * 2, chosenChromosome[1] + 5)), 80, false);
+                    enemyList.add(snail);
+                    enemyCount++;
+                }
+                else {
+                    Swarm testSwarm = new Swarm(enemyX, enemyY);
+                    for (int j = 0; j < chosenChromosome[2]; j++) {
+                        Bat testBat = new Bat(testSwarm.startPosX + randomizer.nextFloat() * 160 - 80, testSwarm.startPosY + randomizer.nextFloat() * 160 - 80, 0, 0, chosenChromosome[0], Entity.Direction.LEFT, Entity.Direction.LEFT, (int)Math.max((chosenChromosome[1] / 2.0f), 1), 20, true);
+                        testBat.setObjective(new Vector2(player.X, player.Y));
+                        testSwarm.addEnemy(testBat);
+                        enemyList.add(testBat);
+                        enemyCount++;
+                    }
+                    swarmList.add(testSwarm);
+                }
+            }
+            updateEnemyCount();
+            enemyTimer = 0;
+        }
 
         //region Weather System
         weatherTimer += delta;
@@ -529,6 +594,61 @@ public class GameScreen implements Screen, InputProcessor {
             System.out.println("Precipitation:" + Weather.getPrecipitation());
             System.out.println("Prev. Precipitation:" + Weather.getPrevPrecipitation());
             System.out.println("Precipitation Change:" + Weather.getChange());
+
+            windStrengthText.setText("Wind Str: " + (float) Math.round(Weather.getWindStrength() * 3.6f * 100) / 100 + " km/h");
+            String compassText = "-";
+            if (Weather.getWindDirection() < 22.5f) {
+                compassText = "E";
+            }
+            else if (Weather.getWindDirection() < 67.5f) {
+                compassText = "NE";
+            }
+            else if (Weather.getWindDirection() < 112.5f) {
+                compassText = "N";
+            }
+            else if (Weather.getWindDirection() < 157.5f) {
+                compassText = "NW";
+            }
+            else if (Weather.getWindDirection() < 202.5f) {
+                compassText = "W";
+            }
+            else if (Weather.getWindDirection() < 247.5f) {
+                compassText = "SW";
+            }
+            else if (Weather.getWindDirection() < 292.5f) {
+                compassText = "S";
+            }
+            else if (Weather.getWindDirection() < 337.5f) {
+                compassText = "SE";
+            }
+            else if (Weather.getWindDirection() <= 360) {
+                compassText = "E";
+            }
+            windDirText.setText("Wind Dir: " + (float) Math.round(Weather.getWindDirection() * 10) / 10 + " " + compassText);
+            String weatherName = "-";
+            switch (Weather.getRain()) {
+                case NONE:
+                    weatherName = "None";
+                    break;
+                case LIGHT:
+                    weatherName = "Light";
+                    break;
+                case HEAVY:
+                    weatherName = "Heavy";
+                    break;
+            }
+            weatherText.setText("Rain: " + weatherName);
+
+            switch (Weather.getRain()) {
+                case LIGHT:
+                    explodeDistance = 102400;
+                    break;
+                case HEAVY:
+                    explodeDistance = 57600;
+                    break;
+                default:
+                    explodeDistance = 160000;
+            }
 
             weatherTimer = 0;
         }
@@ -570,7 +690,7 @@ public class GameScreen implements Screen, InputProcessor {
         player.update();
         gameState = player.result();
 
-        //region Attack Updates
+        //region Control Updates
 
         if (clickCD > 0)
             clickCD -= delta;
@@ -586,12 +706,40 @@ public class GameScreen implements Screen, InputProcessor {
         
         updateE();
 
-        if (qCD > 0)
+        if (qCD > 0) {
             qCD -= delta;
+            if (difficulty == 5) {
+                if (player.getState() != Klee.State.HIT && player.getState() != Klee.State.WIN && d5_ultTimer % 8 == 0) {
+                    kleeClick();
+                }
+                d5_ultTimer++;
+            }
+        }
         else if (qCD < 0)
             qCD = 0;
+        else if (qCD == 0 && d5_ultTimer > 0)
+            d5_ultTimer = 0;
 
         updateQ();
+        
+        if (staminaCD > 0)
+            staminaCD -= delta;
+        else if (staminaCD < 0)
+            staminaCD = 0;
+        
+        if (maxStamina != -1) {
+            if (stamina < maxStamina && staminaCD == 0)
+                stamina += delta * 25;
+            else if (stamina > maxStamina)
+                stamina = maxStamina;
+            else if (stamina < 0)
+                stamina = 0;
+
+            staminaText.setText("Stamina: " + (float) Math.round(stamina * 10) / 10);
+        }
+        else {
+            staminaText.setText("Stamina: Infinite");
+        }
 
         //endregion
 
@@ -599,7 +747,7 @@ public class GameScreen implements Screen, InputProcessor {
             k.setDX(k.getDX() + Weather.getWindStrength() * (float) Math.cos(Math.toRadians(Weather.getWindDirection())) * delta);
             k.setDY(k.getDY() + Weather.getWindStrength() * (float) Math.sin(Math.toRadians(Weather.getWindDirection())) * delta);
             k.update();
-            if (k.getState() == KleeAttacks.State.STD && ((k.getX() - k.getStartX()) * (k.getX() - k.getStartX()) + (k.getY() - k.getStartY()) * (k.getY() - k.getStartY())) > 160000) {
+            if (k.getState() == KleeAttacks.State.STD && ((k.getX() - k.getStartX()) * (k.getX() - k.getStartX()) + (k.getY() - k.getStartY()) * (k.getY() - k.getStartY())) > explodeDistance) {
                 k.Boom(Vector2.dst(k.getX(), k.getY(), player.X, player.Y));
             }
         }
@@ -608,15 +756,32 @@ public class GameScreen implements Screen, InputProcessor {
             k.setDX(k.getDX() + Weather.getWindStrength() * (float) Math.cos(Math.toRadians(Weather.getWindDirection())) * delta * 0.5f);
             k.setDY(k.getDY() + Weather.getWindStrength() * (float) Math.sin(Math.toRadians(Weather.getWindDirection())) * delta * 0.5f);
             k.update();
-            if (k.getState() == KleeAttacks.State.STD && ((k.getX() - k.getStartX()) * (k.getX() - k.getStartX()) + (k.getY() - k.getStartY()) * (k.getY() - k.getStartY())) > 160000) {
+            if (k.getState() == KleeAttacks.State.STD && ((k.getX() - k.getStartX()) * (k.getX() - k.getStartX()) + (k.getY() - k.getStartY()) * (k.getY() - k.getStartY())) > explodeDistance) {
                 k.Boom(Vector2.dst(k.getX(), k.getY(), player.X, player.Y));
-                for (int i = 0; i < 10; i++) {
+                int amount = 10;
+                if (difficulty == 5) {
+                    amount = 20;
+                }
+                for (int i = 0; i < amount; i++) {
                     float x, y;
                     x = k.getX() - 160 + randomizer.nextInt(320);
                     y = k.getY() - 160 + randomizer.nextInt(320);
-                    KleeBomb kB = new KleeBomb(x, y, 0, 0, 8, ((SimpleGame) parentGame).getSoundVolume());
+                    KleeBomb kB = new KleeBomb(x, y, 0, 0, (int)(8 * skillEnergyMul), kleeAtkSpeed, ((SimpleGame) parentGame).getSoundVolume());
                     kleeBombList.add(kB);
                 }
+            }
+        }
+
+        Iterator<Swarm> swarmIterator = swarmList.iterator();
+
+        while (swarmIterator.hasNext()) {
+            Swarm s = swarmIterator.next();
+            s.update();
+            s.calculateSwarmIteration(new Vector2(player.X, player.Y));
+
+            if (s.getState() == Swarm.State.DEAD) {
+                System.out.println("Swarm eliminated");
+                swarmIterator.remove();
             }
         }
 
@@ -633,7 +798,7 @@ public class GameScreen implements Screen, InputProcessor {
                 e.setDY(enemyDir.y);
             }
 
-            if (e.canHit(player)) {
+            if (e.canHit(player) && difficulty != 5) {
                 player.getHit();
             }
             if (e.getState() == Enemy.State.DEAD) {
@@ -657,27 +822,18 @@ public class GameScreen implements Screen, InputProcessor {
                     e.getHit();
                     addEnergy(k.getEnergy());
                     k.Boom(Vector2.dst(k.getX(), k.getY(), player.X, player.Y));
-                    for (int i = 0; i < 10; i++) {
+                    int amount = 10;
+                    if (difficulty == 5) {
+                        amount = 20;
+                    }
+                    for (int i = 0; i < amount; i++) {
                         float x, y;
                         x = k.getX() - 160 + randomizer.nextInt(320);
                         y = k.getY() - 160 + randomizer.nextInt(320);
-                        KleeBomb kB = new KleeBomb(x, y, 0, 0, 8, ((SimpleGame) parentGame).getSoundVolume());
+                        KleeBomb kB = new KleeBomb(x, y, 0, 0, (int)(8 * skillEnergyMul), kleeAtkSpeed, ((SimpleGame) parentGame).getSoundVolume());
                         kleeBombList.add(kB);
                     }
                 }
-            }
-        }
-
-        Iterator<Swarm> swarmIterator = swarmList.iterator();
-
-        while (swarmIterator.hasNext()) {
-            Swarm s = swarmIterator.next();
-            s.calculateSwarmIteration(new Vector2(player.X, player.Y));
-            s.update();
-
-            if (s.getState() == Swarm.State.DEAD) {
-                System.out.println("Swarm eliminated");
-                swarmIterator.remove();
             }
         }
 
@@ -693,17 +849,8 @@ public class GameScreen implements Screen, InputProcessor {
         }
         kleeEList.removeAll(kEtoRemove);
 
-        if (enemyCount <= 0 && checkWin == 0) {
-            checkWin = 1;
-//            player.setWin();
-        }
-
         if (gameState == -1) {
-            parentGame.setScreen(new ResultScreen(parentGame, false, score));
-            this.dispose();
-        }
-        else if (gameState == 1) {
-            parentGame.setScreen(new ResultScreen(parentGame, true, score));
+            parentGame.setScreen(new ResultScreen(parentGame, score));
             this.dispose();
         }
     }
@@ -719,6 +866,9 @@ public class GameScreen implements Screen, InputProcessor {
             case 4:
                 add *= 2;
                 break;
+            case 5:
+                add *= 3;
+                break;
         }
         score += add;
         scoreText.setText("Score: " + score);
@@ -733,7 +883,7 @@ public class GameScreen implements Screen, InputProcessor {
     }
 
     public void updateEnemyCount() {
-        enemyCountText.setText("Enemies Left: " + enemyCount);
+        enemyCountText.setText("Enemies Alive: " + enemyCount);
     }
 
     public void updateClick() {
@@ -787,6 +937,108 @@ public class GameScreen implements Screen, InputProcessor {
         }
     }
 
+    public void calculateGA() {
+        float[] child1 = {parent1[0], parent2[1], parent1[2]};
+        float[] child2 = {parent2[0], parent1[1], parent2[2]};
+
+        int moddedGA = gaIteration % 3;
+        switch (moddedGA) {
+            case 0:
+                child1[0] *= 1 + randomizer.nextFloat() * 0.2f * gaStatMul - 0.1f * gaStatMul;
+                child2[0] *= 1 + randomizer.nextFloat() * 0.2f * gaStatMul - 0.1f * gaStatMul;
+                break;
+            case 1:
+                child1[1] *= 1 + randomizer.nextFloat() * 0.1f * gaStatMul - 0.05f * gaStatMul;
+                child2[1] *= 1 + randomizer.nextFloat() * 0.1f * gaStatMul - 0.05f * gaStatMul;
+                break;
+            case 2:
+                child1[2] *= 1 + randomizer.nextFloat() * 0.05f * gaStatMul - 0.025f * gaStatMul;
+                child2[2] *= 1 + randomizer.nextFloat() * 0.05f * gaStatMul - 0.025f * gaStatMul;
+                break;
+            default:
+                System.out.println("wtf");
+        }
+
+        ArrayList<float[]> tempList = new ArrayList<>();
+        tempList.add(child1);
+        tempList.add(child2);
+
+        for (float[] child: tempList) {
+            if (offsprings.size() < 5) {
+                offsprings.add(child);
+            }
+            else {
+                float childScore = child[0] + child[1] * 20 + child[2] * 10;
+
+                float worstScore = offsprings.get(0)[0] + offsprings.get(0)[1] * 20 + offsprings.get(0)[2] * 10;
+                int worstIndex = 0;
+
+                float bestScore = offsprings.get(0)[0] + offsprings.get(0)[1] * 20 + offsprings.get(0)[2] * 10;
+                int bestIndex = 0;
+                for (int i = 1; i < 5; i++) {
+                    float checkScore = offsprings.get(i)[0] + offsprings.get(i)[1] * 20 + offsprings.get(i)[2] * 10;
+                    if (worstScore > checkScore) {
+                        worstScore = checkScore;
+                        worstIndex = i;
+                    }
+                    if (bestScore < checkScore) {
+                        bestScore = checkScore;
+                        bestIndex = i;
+                    }
+                }
+                if (worstScore < childScore) {
+                    offsprings.set(worstIndex, child);
+                }
+                parent1 = offsprings.get(bestIndex);
+                
+                ArrayList<float[]> tempTemp = new ArrayList<>(offsprings);
+                tempTemp.remove(bestIndex);
+
+                bestScore = tempTemp.get(0)[0] + tempTemp.get(0)[1] * 20 + tempTemp.get(0)[2] * 10;
+                bestIndex = 0;
+                for (int i = 1; i < 4; i++) {
+                    float checkScore = tempTemp.get(i)[0] + tempTemp.get(i)[1] * 20 + tempTemp.get(i)[2] * 10;
+                    if (bestScore < checkScore) {
+                        bestScore = checkScore;
+                        bestIndex = i;
+                    }
+                }
+                parent2 = tempTemp.get(bestIndex);
+            }
+        }
+
+        gaIteration++;
+    }
+
+    public void kleeClick() {
+        if (viewport.unproject(new Vector2(Gdx.input.getX(), 0)).x > player.getX()) {
+            player.setDirection(Entity.Direction.RIGHT);
+            player.setAnimationDirection(Entity.Direction.RIGHT);
+        } else {
+            player.setDirection(Entity.Direction.LEFT);
+            player.setAnimationDirection(Entity.Direction.LEFT);
+        }
+        Vector2 dir = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+        dir = viewport.unproject(dir);
+        dir.x -= player.getX();
+        dir.y -= player.getY();
+
+        dir = dir.nor();
+
+        if (difficulty != 5) {
+            KleeBomb kB = new KleeBomb(player.getX(), player.getY(), dir.x, dir.y, (int)(4 * skillEnergyMul), kleeAtkSpeed, ((SimpleGame) parentGame).getSoundVolume());
+            kleeBombList.add(kB);
+        }
+        else {
+            dir = dir.rotateDeg(-30);
+            for (int i = 0; i < 3; i++) {
+                KleeBomb kB = new KleeBomb(player.getX(), player.getY(), dir.x, dir.y, (int)(4 * skillEnergyMul), kleeAtkSpeed, ((SimpleGame) parentGame).getSoundVolume());
+                dir = dir.rotateDeg(30);
+                kleeBombList.add(kB);
+            }
+        }
+    }
+
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
@@ -818,12 +1070,23 @@ public class GameScreen implements Screen, InputProcessor {
         if (player.getState() == Klee.State.HIT || player.getState() == Klee.State.WIN)
             return false;
 
+        if (i == Input.Keys.F && player.getState() != Klee.State.HIT && player.getState() != Klee.State.WIN && !(clickCD > 0)) {
+            kleeClick();
+            clickCD = clickCD_MAX;
+        }
+
         if ((i == Input.Keys.A || i == Input.Keys.W || i == Input.Keys.D || i == Input.Keys.S) && pressedKeys.size < 2) {
             pressedKeys.add(i);
         }
 
-        if (i == Input.Keys.SHIFT_LEFT) {
-            player.setDashMultiplier(6.0f);
+        if (i == Input.Keys.SHIFT_LEFT && pressedKeys.notEmpty()) {
+            if (stamina > 18 && staminaCD == 0 || maxStamina == -1) {
+                player.setDashMultiplier(6.0f);
+                if (maxStamina != -1) {
+                    stamina -= 18;
+                    staminaCD = staminaCD_MAX;
+                }
+            }
         }
 
         if (i == Input.Keys.E && eCD <= 0) {
@@ -843,7 +1106,7 @@ public class GameScreen implements Screen, InputProcessor {
 
             dir = dir.nor();
 
-            KleeE kE = new KleeE(player.getX(), player.getY(), dir.x, dir.y, 12, ((SimpleGame) parentGame).getSoundVolume());
+            KleeE kE = new KleeE(player.getX(), player.getY(), dir.x, dir.y, (int)(12 * skillEnergyMul), kleeAtkSpeed, ((SimpleGame) parentGame).getSoundVolume());
             kleeEList.add(kE);
             eCD = eCD_MAX;
         }
@@ -851,7 +1114,7 @@ public class GameScreen implements Screen, InputProcessor {
         if (i == Input.Keys.Q && qCD <= 0 && energy >= 80) {
             player.getSoundQ().play(player.soundVolume * 0.6f);
             for (Enemy e: enemyList) {
-                KleeBomb k = new KleeBomb(e.getX(), e.getY(), 0, 0, 0, ((SimpleGame) parentGame).getSoundVolume());
+                KleeBomb k = new KleeBomb(e.getX(), e.getY(), 0, 0, 0, kleeAtkSpeed, ((SimpleGame) parentGame).getSoundVolume());
                 kleeBombList.add(k);
             }
             energy -= 80;
@@ -891,26 +1154,7 @@ public class GameScreen implements Screen, InputProcessor {
         if (player.getState() == Klee.State.HIT || player.getState() == Klee.State.WIN || clickCD > 0)
             return false;
 
-        if (viewport.unproject(new Vector2(Gdx.input.getX(), 0)).x > player.getX()) {
-            player.setDirection(Entity.Direction.RIGHT);
-            player.setAnimationDirection(Entity.Direction.RIGHT);
-        }
-        else {
-            player.setDirection(Entity.Direction.LEFT);
-            player.setAnimationDirection(Entity.Direction.LEFT);
-        }
-
-        Vector2 dir = new Vector2(Gdx.input.getX(), Gdx.input.getY());
-        dir = viewport.unproject(dir);
-        dir.x -= player.getX();
-        dir.y -= player.getY();
-
-        dir = dir.nor();
-
-        System.out.println(dir);
-
-        KleeBomb kB = new KleeBomb(player.getX(), player.getY(), dir.x, dir.y, 4, ((SimpleGame) parentGame).getSoundVolume());
-        kleeBombList.add(kB);
+        kleeClick();
         clickCD = clickCD_MAX;
         return true;
     }

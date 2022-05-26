@@ -23,7 +23,7 @@ public class Weather {
         HIGH
     }
 
-    private enum Rain {
+    public enum Rain {
         UNKNOWN,
         NONE,
         LIGHT,
@@ -47,6 +47,10 @@ public class Weather {
     private static float cloud;
     private static float prevCloud;
 
+    public static int difficulty = 0;
+    private static float windStrengthLimit;
+    private static float windStrengthRamp;
+
     public static void resetWeather() {
         rain = Rain.UNKNOWN;
         Arrays.fill(isRuleActive, true);
@@ -65,13 +69,43 @@ public class Weather {
             Weather.season = season;
             Arrays.fill(isRuleActive, true);
 
-            //For now random, later tied to difficulty
-            prevPrecipitation = Weather.Precipitation.class.getEnumConstants()[random.nextInt(Precipitation.class.getEnumConstants().length - 1) + 1];
-            //========================================
+            float windStrengthMul;
+
+            switch (difficulty) {
+                case 1:
+                    prevPrecipitation = Weather.Precipitation.class.getEnumConstants()[random.nextInt(Precipitation.class.getEnumConstants().length - 2) + 1];
+                    windStrengthMul = 0.1f;
+                    windStrengthLimit = 0.08f;
+                    windStrengthRamp = 960;
+                    break;
+                case 3:
+                    prevPrecipitation = Weather.Precipitation.class.getEnumConstants()[random.nextInt(Precipitation.class.getEnumConstants().length - 2) + 2];
+                    windStrengthMul = 0.4f;
+                    windStrengthLimit = 0.15f;
+                    windStrengthRamp = 360;
+                    break;
+                case 4:
+                    prevPrecipitation = Precipitation.HIGH;
+                    windStrengthMul = 1;
+                    windStrengthLimit = 0.3f;
+                    windStrengthRamp = 240;
+                    break;
+                case 5:
+                    prevPrecipitation = Precipitation.HIGH;
+                    windStrengthMul = 1.1f;
+                    windStrengthLimit = 0.35f;
+                    windStrengthRamp = 180;
+                    break;
+                default:
+                    prevPrecipitation = Weather.Precipitation.class.getEnumConstants()[random.nextInt(Precipitation.class.getEnumConstants().length - 1) + 1];
+                    windStrengthMul = 0.125f;
+                    windStrengthLimit = 0.1f;
+                    windStrengthRamp = 480;
+            }
 
             cloud = random.nextFloat();
 
-            windStrength = random.nextFloat();
+            windStrength = random.nextFloat() * windStrengthMul;
             windDirection = random.nextFloat() * 360;
             firstRun = false;
         }
@@ -80,9 +114,9 @@ public class Weather {
             cloud = Math.max(0, cloud);
             cloud = Math.min(cloud, 1.0f);
 
-            windStrength += -0.2f + random.nextFloat() * 0.4f;
-            windStrength = Math.max(0 + playTime / 240f, windStrength);
-            windStrength = Math.min(windStrength, 1.0f + playTime / 240f);
+            windStrength += -windStrengthLimit + random.nextFloat() * windStrengthLimit * 2;
+            windStrength = Math.max(0 + playTime / windStrengthRamp, windStrength);
+            windStrength = Math.min(windStrength, 1.0f + playTime / windStrengthRamp);
 
             windDirection += -45 + random.nextFloat() * 90;
             if (windDirection < 0) {

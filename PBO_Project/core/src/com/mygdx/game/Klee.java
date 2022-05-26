@@ -155,7 +155,7 @@ public class Klee extends Entity implements AttackedProcessor {
         stateTime = 0;
         DX = -0.01f;
         DY = 0;
-        soundHit.play(soundVolume);
+        soundHit.play(soundVolume * 0.6f);
     }
 
     public void setWin() {

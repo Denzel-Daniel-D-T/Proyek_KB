@@ -28,14 +28,12 @@ public class ResultScreen implements Screen, InputProcessor {
     Stage stage;
     Label gameOver, scoreLabel;
     TextButton returnButton;
-    boolean alive;
     int score;
 
     InputMultiplexer multiInput;
 
-    public ResultScreen(Game g, boolean alive, int score) {
+    public ResultScreen(Game g, int score) {
         this.score = score;
-        this.alive = alive;
         parentGame = g;
         Initialize();
     }
@@ -58,10 +56,7 @@ public class ResultScreen implements Screen, InputProcessor {
 
         Skin mySkin = assetManager.get("uiskin.json", Skin.class);
 
-        if (alive)
-            gameOver = new Label("You Won!", mySkin);
-        else
-            gameOver = new Label("Game Over!", mySkin);
+        gameOver = new Label("Game Over!", mySkin);
         Label.LabelStyle style = new Label.LabelStyle(gameOver.getStyle());
         style.font = assetManager.get("bigfont.ttf", BitmapFont.class);
         gameOver.setStyle(style);
@@ -161,10 +156,7 @@ public class ResultScreen implements Screen, InputProcessor {
 
     public void draw() {
         Texture background;
-        if (alive)
-            background = assetManager.get("win_bg.png", Texture.class);
-        else
-            background = assetManager.get("lose_bg.png", Texture.class);
+        background = assetManager.get("lose_bg.png", Texture.class);
 
         batch.draw(background, 0, 0);
     }

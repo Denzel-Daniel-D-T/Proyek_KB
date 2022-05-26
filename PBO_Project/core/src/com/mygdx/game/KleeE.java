@@ -9,8 +9,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class KleeE extends KleeAttacks {
 
-    public KleeE(float X, float Y, float DX, float DY, int energy, float soundVolume) {
-        super(X, Y, DX, DY, energy, soundVolume);
+    public KleeE(float X, float Y, float DX, float DY, int energy, float speed, float soundVolume) {
+        super(X, Y, DX, DY, energy, speed, soundVolume);
         this.InitializeAnimation();
     }
 

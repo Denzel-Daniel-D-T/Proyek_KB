@@ -20,7 +20,7 @@ public abstract class KleeAttacks extends Entity implements KleeAttackProcessor 
     float startY;
     int energy;
 
-    public KleeAttacks(float X, float Y, float DX, float DY, int energy, float soundVolume) {
+    public KleeAttacks(float X, float Y, float DX, float DY, int energy, float speed, float soundVolume) {
         startX = X;
         startY = Y;
         this.X = X;
@@ -29,7 +29,7 @@ public abstract class KleeAttacks extends Entity implements KleeAttackProcessor 
         this.DY = DY;
         this.energy = energy;
         this.soundVolume = soundVolume;
-        Speed = 150;
+        Speed = speed;
         if (DX < 0) {
             animationDirection = Direction.LEFT;
             direction = Direction.LEFT;
